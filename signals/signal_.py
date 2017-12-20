@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-import signals.utils as utils
+import signals.utils.figure as _figure
 
 
 class Signal(np.ndarray):
@@ -22,14 +22,26 @@ class Signal(np.ndarray):
   # region : Properties
 
   @property
+  def is_real(self):
+    return not np.iscomplex(self).any()
+
+  @property
   def spectrum(self):
     spectrum = np.fft.fft(self)
     # return spectrum
-    return np.fft.fftshift(spectrum)
+    if not self.is_real or self.fs is None:
+      return np.fft.fftshift(spectrum)
+    else:
+      freqs = np.fft.fftfreq(self.size, 1 / self.fs)
+      return spectrum[freqs >= 0]
 
   @property
-  def energy_density(self):
-    return np.abs(self.spectrum)
+  def amplitude_spectrum(self):
+    fs = 1. if self.fs is None else self.fs
+    # Here we apply a scaling factor of 1/fs so that the amplitude of the
+    #  FFT at a frequency component equals that of the CFT and to preserve
+    #  Parseval's theorem
+    return np.abs(self.spectrum) / fs
 
   @property
   def duration(self):
@@ -45,13 +57,16 @@ class Signal(np.ndarray):
     if self.fs is None: return None
     else:
       freqs = np.fft.fftfreq(self.size, 1 / self.fs)
-      return np.fft.fftshift(freqs)
+      if self.is_real:
+        return freqs[freqs >= 0]
+      else:
+        return np.fft.fftshift(freqs)
 
   @property
   def info_string(self):
     info = ""
     for key in self.dict:
-      info += "" if len(info) == 0 else " | "
+      info += "" if len(info) == 0 else "  |  "
       info += "{} = {}".format(key, self.dict[key])
 
     return info
@@ -60,14 +75,17 @@ class Signal(np.ndarray):
 
   # region : Public Methods
 
-  def plot(self, form_title=None, time_domain=False):
+  def plot(self, form_title=None, time_domain=False, db=True):
     if form_title is None: form_title = self.info_string
-    utils.plot(self, form_title, time_domain=time_domain,
-               freq_domain=True, show=True)
+    fig = _figure.Figure(form_title)
+    if time_domain: fig.add(_figure.Subplot.TimeDomainPlot(self))
+    fig.add(_figure.Subplot.AmplitudeSpectrum(self, db=db))
+    fig.plot()
 
   # endregion : Public Methods
 
   # region : Private Methods
+
   # endregion : Private Methods
 
   # region : Superclass Preserved
@@ -83,6 +101,4 @@ class Signal(np.ndarray):
 
 
 if __name__ == "__main__":
-  x = np.arange(10)
-  s = Signal(x)
-  print(s)
+  pass

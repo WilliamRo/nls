@@ -2,6 +2,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import numpy as np
+from signals.signal_ import Signal
+
 
 class System(object):
   """Base class of all systems"""
@@ -10,16 +13,16 @@ class System(object):
 
   # region : Properties
 
-  @property
-  def foo(self):
-    return None
+
 
   # endregion : Properties
 
   # region : Public Methods
 
-  def response(self, x):
-    return self.response_function(x)
+  def response(self, signl):
+    if not isinstance(signl, Signal):
+      raise TypeError('!! Input signl must be an instance of Signal')
+    return self.response_function(signl)
 
   # endregion : Public Methods
 
@@ -35,4 +38,15 @@ class System(object):
 
 
 if __name__ == "__main__":
-  print("GG")
+  from signals.generator import multi_tone
+  print(">> Running module system_.py")
+
+  fs = 2000
+  duration = 1
+  freqs = [500, 800]
+  vrms = [2, 1]
+  phases = [0, np.pi]
+  signal = multi_tone(freqs, fs, duration, vrms=vrms, phases=phases,
+                      noise_power=1e-2)
+
+  signal.plot(form_title='Input signal', db=True, time_domain=False)
