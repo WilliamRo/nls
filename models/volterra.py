@@ -42,15 +42,20 @@ class Volterra(Model):
       raise TypeError('!! Input must be an instance of Signal')
 
     y = np.zeros_like(input_)
-    for i in range(len(y)):
+    for n in range(len(y)):
+      # Calculate y[n]
       for lags, h in self.kernel.items:
-        y[i] = h
+        # lags = (\tau_1, \tau_2, \cdots, \tau_k)
+        # prod = h_k(\tau_1, \cdots, \tau_k) * \prod_{i=1}^k x[n-\tau_i]
+        prod = h
         for lag in lags:
-          index = i - lag
+          index = n - lag
           if index < 0:
-            y[i] = 0
+            prod = 0
             break
-          y[i] *= input_[index]
+          prod *= input_[index]
+        # Add prod to y[n]
+        y[n] += prod
 
     output = Signal(y)
     output.__array_finalize__(input_)
@@ -86,7 +91,8 @@ class Kernel(object):
     for d in range(1, degree + 1):
       indices = Kernel.get_indices(d, depth[d - 1])
       for index in indices:
-        self.params[index] = np.random.randn()
+        self.params[index] = np.random.randn() / depth[d - 1] ** d
+        # self.params[index] = 0
 
   # region : Properties
 
@@ -146,14 +152,20 @@ if __name__ == '__main__':
 
   fs = 2000
   duration = 1
-  freqs = [600, 800, 300]
-  vrms = [6, 4, 6]
+  freqs = [600, 460, 120]
+  vrms = [6, 4, 4]
   phases = None
   signal = multi_tone(freqs, fs, duration, vrms=vrms, phases=phases,
-                      noise_power=1e-2)
+                      noise_power=1e-4)
 
-  model = Volterra(degree=3, memory_depth=10)
+  model = Volterra(degree=2, memory_depth=1)
+  # model.kernel.params[(1, 0)] = 1
+  # model.kernel.params[(1,)] = 1
+  # model.kernel.params[(0,)] = 1
   output = model(signal)
+
+  # print(model.kernel)
+  # print('>> Delta = {}'.format(np.linalg.norm(signal - output)))
 
   from signals.utils import Figure, Subplot
   fig = Figure('Input & Output')
