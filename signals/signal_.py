@@ -101,4 +101,4 @@ class Signal(np.ndarray):
 
 
 if __name__ == "__main__":
-  pass
+  print('>> All is well.')
