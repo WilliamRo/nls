@@ -99,14 +99,21 @@ class Subplot(object):
     density = (20 * np.log10(self.signl.amplitude_spectrum) if self.db
                else self.signl.amplitude_spectrum)
     Subplot._plot(self.signl.freq_axis, density)
-    ylabel = 'Amplitude'
+    ylabel = 'Spectrum Amplitude'
     if self.db: ylabel += ' (dB)'
     Subplot._plot(self.signl.freq_axis, density,
                   title=self._make_title('Amplitude Spectrum'),
                   xlabel='Frequency (Hz)', ylabel=ylabel)
 
   def _power_spectrum(self):
-    raise NotImplementedError('Sorry dude ...')
+    density = (10 * np.log10(self.signl.power_spectrum_density) if self.db
+               else self.signl.power_spectrum_density)
+    Subplot._plot(self.signl.freq_axis, density)
+    ylabel = 'Power'
+    if self.db: ylabel += ' (dB)'
+    Subplot._plot(self.signl.freq_axis, density,
+                  title=self._make_title('Power Spectrum'),
+                  xlabel='Frequency (Hz)', ylabel=ylabel)
 
   def _make_title(self, title):
     if self.predix is not None: title = '[{}] {}'.format(self.predix, title)

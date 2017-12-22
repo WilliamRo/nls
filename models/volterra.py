@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import collections
 import numpy as np
 import math
 
@@ -30,10 +31,24 @@ class Volterra(Model):
     # Initialize fields
     self.degree = degree
     self.memory_depth = memory_depth
-    self.kernel = Kernel(degree, memory_depth)
+    self.kernels = Kernels(degree, memory_depth)
 
     # Call parent's construction methods
     Model.__init__(self)
+
+  # region : Properties
+
+  @property
+  def indices(self):
+    results = []
+
+    for d in range(1, self.degree + 1):
+      results += Kernels.get_homogeneous_indices(
+        d, self.memory_depth[d - 1], False)
+
+    return results
+
+  # endregion : Properties
 
   # region : Public Methods
 
@@ -44,10 +59,11 @@ class Volterra(Model):
     y = np.zeros_like(input_)
     for n in range(len(y)):
       # Calculate y[n]
-      for lags, h in self.kernel.items:
+      for lags in self.indices:
         # lags = (\tau_1, \tau_2, \cdots, \tau_k)
         # prod = h_k(\tau_1, \cdots, \tau_k) * \prod_{i=1}^k x[n-\tau_i]
-        prod = h
+        prod = self.kernels[lags]
+        if prod == 0: continue
         for lag in lags:
           index = n - lag
           if index < 0:
@@ -73,7 +89,7 @@ class Volterra(Model):
   '''For some reason, do not delete this line'''
 
 
-class Kernel(object):
+class Kernels(object):
   """Volterra kernel in symmetric form"""
   MAX_PARAMS_COUNT = int(3e7)  # 100~200MB Memory
 
@@ -84,15 +100,15 @@ class Kernel(object):
     self.params = {}
 
     # Parameters count should be limited
-    if self.params_count > Kernel.MAX_PARAMS_COUNT:
+    if self.params_count > Kernels.MAX_PARAMS_COUNT:
       raise ValueError('!! Too much parameters')
 
     # Initialize parameters
     for d in range(1, degree + 1):
-      indices = Kernel.get_indices(d, depth[d - 1])
+      indices = Kernels.get_homogeneous_indices(d, depth[d - 1])
       for index in indices:
-        self.params[index] = np.random.randn() / depth[d - 1] ** d
-        # self.params[index] = 0
+        # self.params[index] = np.random.randn() / depth[d - 1] ** d
+        self.params[index] = 0
 
   # region : Properties
 
@@ -100,7 +116,7 @@ class Kernel(object):
   def params_count(self):
     count = 0
     for d in range(1, self.degree + 1):
-      count += Kernel.nCr(self.depth[d - 1] + d - 1, d)
+      count += Kernels.nCr(self.depth[d - 1] + d - 1, d)
     return count
 
   @property
@@ -118,19 +134,25 @@ class Kernel(object):
     return len(self.params)
 
   def __str__(self):
-    return "{}".format(self.params)
+    od = collections.OrderedDict()
+    for d in range(1, self.degree + 1):
+      indices = Kernels.get_homogeneous_indices(d, self.depth[d - 1])
+      for index in indices:
+        od[index] = self.params[index]
+    return "{}".format(od)
 
   # endregion : Operator Overloading
 
   # region : Static Methods
 
   @staticmethod
-  def get_indices(degree, N):
+  def get_homogeneous_indices(degree, N, symmetric=True):
     indices = []
     for i in range(N):
       if degree == 1: indices.append((i,))
       else:
-        sub_indices = Kernel.get_indices(degree - 1, i + 1)
+        sub_indices = Kernels.get_homogeneous_indices(
+          degree - 1, (i + 1) if symmetric else N, symmetric)
         for sub_index in sub_indices:
           indices.append((i,) + sub_index)
 
@@ -152,15 +174,15 @@ if __name__ == '__main__':
 
   fs = 2000
   duration = 1
-  freqs = [600, 460, 120]
-  vrms = [6, 4, 4]
+  freqs = [500, 800]
+  vrms = [2, 1]
   phases = None
   signal = multi_tone(freqs, fs, duration, vrms=vrms, phases=phases,
                       noise_power=1e-4)
 
   model = Volterra(degree=2, memory_depth=1)
-  # model.kernel.params[(1, 0)] = 1
-  # model.kernel.params[(1,)] = 1
+  model.kernels.params[(1, 0)] = 1
+  model.kernels.params[(1,)] = 1
   # model.kernel.params[(0,)] = 1
   output = model(signal)
 

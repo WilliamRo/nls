@@ -48,13 +48,13 @@ if __name__ == "__main__":
   from signals.generator import multi_tone
   print(">> Running module system_.py")
 
-  fs = 2000
+  fs = 3000
   duration = 1
   freqs = [500, 800]
   vrms = [2, 1]
   phases = [0, np.pi]
   signal = multi_tone(freqs, fs, duration, vrms=vrms, phases=phases,
-                      noise_power=1e-2)
+                      noise_power=1e-3)
 
   def response(input_):
     y = np.zeros_like(input_)

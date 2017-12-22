@@ -44,6 +44,11 @@ class Signal(np.ndarray):
     return np.abs(self.spectrum) / fs
 
   @property
+  def power_spectrum_density(self):
+    fs = self.size if self.fs is None else self.fs
+    return np.abs(self.spectrum * np.conj(self.spectrum) / self.size / fs)
+
+  @property
   def duration(self):
     return None if self.fs is None else self.size / self.fs
 

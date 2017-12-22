@@ -25,21 +25,25 @@ def multi_tone(freqs, fs, duration, vrms=None, phases=None,
   for i in range(len(freqs)):
     x += vrms[i] * np.sqrt(2) * np.sin(2 * np.pi * freqs[i] * t + phases[i])
 
+  # Instantiate Signal
   signl = signal_.Signal(x, fs=fs, signal_freqs=freqs, sampling_freq=fs)
-  return signl + gaussian_white_noise(signl, noise_power)
 
-
-def gaussian_white_noise(signl, noise_power=0.001):
-  """Reference: https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.signal.welch.html"""
-  # Sanity check
-  if not isinstance(signl, signal_.Signal):
-    raise TypeError('Input signal must be an instance of Signal')
-  if signl.fs is None:
-    raise ValueError('The sampling frequency of signal should be specified')
-
+  # Add gaussian white noise to signal
+  # Reference: https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.signal.welch.html
   noise_power = noise_power * signl.fs / 2
-  noise = np.random.normal(scale=np.sqrt(noise_power), size=signl.shape) + signl
-  return noise
+  noise = gaussian_white_noise(noise_power, size=signl.shape, fs=signl.fs)
+  return signl + noise
+
+
+def gaussian_white_noise(intensity, size, fs):
+  """Generate a gaussian white noise with specific intensity A.
+     That is, R_XX(\tau) = A\delta_(\tau), S_XX(\omega) = A
+     R_XX(\tau) = E[x[t]x[t-\tau]] = \sigma^2 \delta(\tau)
+     Reference: https://www.gaussianwaves.com/2013/11/simulation-and-analysis-of-white-noise-in-matlab/"""
+  noise = np.random.normal(scale=np.sqrt(intensity), size=size)
+  signl = signal_.Signal(noise, fs=fs)
+
+  return signl
 
 
 class Generator(object):
