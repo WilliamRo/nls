@@ -52,6 +52,59 @@ class Volterra(Model):
 
   # region : Public Methods
 
+  def cross_correlation(self, input_, output, intensity):
+    """Identification using Gaussian white noise excitation
+       Example: (given system to be identify)
+         model Volterra(degree, memory_depth)
+         
+         intensity = 2
+         length = 1000000
+         fs = length
+         input_ = gaussian_white_noise(intensity, length, fs)
+         output = system(input_)
+         
+         model.cross_correlation(input_, output, intensity)
+    """
+    # Sanity check
+    if input_.size != output.size:
+      raise ValueError(
+        '!! Length of input_ {} does not match length of ' 'output {}'.format(
+          input_.size, output.size))
+
+    if self.degree > 2:
+      raise ValueError('!! Currently this method is only applied with degree'
+                       ' less than 3')
+    # Preparation
+    N = input_.size
+    A = intensity
+
+    # For h_1(\tau)
+    for tau in range(self.memory_depth[0]):
+      xy = np.sum(output[tau:] * input_[:N-tau], dtype=np.float32)
+      param = float(xy) / (N - tau) / A
+      self.kernels.params[(tau,)] = param
+
+    # For h_2(\tau_1, \tau_2)
+    depth = self.memory_depth[1]
+    Es = np.zeros(shape=(depth, 1), dtype=np.float32)
+    for tau_1, tau_2 in Kernels.get_homogeneous_indices(2, depth):
+      max_tau = max(tau_1, tau_2)
+      x_1 = input_[(max_tau - tau_1):(N - tau_1)]
+      x_2 = input_[(max_tau - tau_2):(N - tau_2)]
+      Eyxx = float(np.sum(output[max_tau:] * x_1 * x_2)) / (N - max_tau)
+      if tau_1 == tau_2:
+        Es[tau_1] = Eyxx
+        continue
+      self.kernels.params[(tau_1, tau_2)] = Eyxx / (2 * A * A)
+
+    # Solve the diagonal values
+    coefs = np.ones(shape=(depth, depth), dtype=np.float32)
+    for i in range(depth): coefs[i, i] = 3.
+    diags = np.matmul(np.linalg.inv(A * A * coefs), Es)
+    for i in range(depth):
+      self.kernels.params[(i, i)] = diags[i, 0]
+
+
   def inference(self, input_):
     if not isinstance(input_, Signal):
       raise TypeError('!! Input must be an instance of Signal')
@@ -76,6 +129,10 @@ class Volterra(Model):
     output = Signal(y)
     output.__array_finalize__(input_)
     return output
+
+
+  def set_kernel(self, index, value):
+    self.kernels.params[index] = value
 
   # endregion : Public Methods
 
