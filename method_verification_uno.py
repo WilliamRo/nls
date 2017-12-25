@@ -9,7 +9,7 @@ from signals.utils import Figure, Subplot
 # ==============================================================================
 #  Global configuration
 # ==============================================================================
-pass
+show = True
 
 # ==============================================================================
 #  Get systems to identify
@@ -69,7 +69,8 @@ for i, system in enumerate(systems):
     fig.add(Subplot.PowerSpectrum(signl, prefix='Input'))
     fig.add(Subplot.PowerSpectrum(system_output, prefix='System Output'))
     fig.add(Subplot.PowerSpectrum(model_output, prefix='Model Output'))
-    fig.plot()
+
+    if show: fig.plot()
 
 
 

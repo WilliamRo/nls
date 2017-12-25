@@ -52,6 +52,39 @@ class Volterra(Model):
 
   # region : Public Methods
 
+  def inference(self, input_):
+    if not isinstance(input_, Signal):
+      raise TypeError('!! Input must be an instance of Signal')
+
+    y = np.zeros_like(input_)
+    for n in range(len(y)):
+      # Calculate y[n]
+      for lags in self.indices:
+        # lags = (\tau_1, \tau_2, \cdots, \tau_k)
+        # prod = h_k(\tau_1, \cdots, \tau_k) * \prod_{i=1}^k x[n-\tau_i]
+        prod = self.kernels[lags]
+        if prod == 0: continue
+        for lag in lags:
+          index = n - lag
+          if index < 0:
+            prod = 0
+            break
+          prod *= input_[index]
+        # Add prod to y[n]
+        y[n] += prod
+
+    output = Signal(y)
+    output.__array_finalize__(input_)
+    return output
+
+
+  def set_kernel(self, index, value):
+    self.kernels.params[index] = value
+
+  # endregion : Public Methods
+
+  # region : Identification in Time Domain
+
   def cross_correlation(self, input_, output, intensity):
     """Identification using Gaussian white noise excitation
        Example: (given system to be identify)
@@ -104,37 +137,11 @@ class Volterra(Model):
     for i in range(depth):
       self.kernels.params[(i, i)] = diags[i, 0]
 
+  # endregion : Identification in Time Domain
 
-  def inference(self, input_):
-    if not isinstance(input_, Signal):
-      raise TypeError('!! Input must be an instance of Signal')
+  # region : Identification in Frequency Domain
 
-    y = np.zeros_like(input_)
-    for n in range(len(y)):
-      # Calculate y[n]
-      for lags in self.indices:
-        # lags = (\tau_1, \tau_2, \cdots, \tau_k)
-        # prod = h_k(\tau_1, \cdots, \tau_k) * \prod_{i=1}^k x[n-\tau_i]
-        prod = self.kernels[lags]
-        if prod == 0: continue
-        for lag in lags:
-          index = n - lag
-          if index < 0:
-            prod = 0
-            break
-          prod *= input_[index]
-        # Add prod to y[n]
-        y[n] += prod
-
-    output = Signal(y)
-    output.__array_finalize__(input_)
-    return output
-
-
-  def set_kernel(self, index, value):
-    self.kernels.params[index] = value
-
-  # endregion : Public Methods
+  # endregion : Identification in Frequency Domain
 
   # region : Operator Overloading
 
