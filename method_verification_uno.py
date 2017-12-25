@@ -63,7 +63,9 @@ for i, system in enumerate(systems):
     system_output = system(signl)
     model_output = model(signl)
     delta = np.linalg.norm(system_output - model_output) / signl.size
-    fig = Figure('System[{}], signal[{}]: Delta = {}'.format(i, j, delta))
+    result = 'Signal[{}]: Delta = {}'.format(j, delta)
+    print('  ', result)
+    fig = Figure('System[{}], {}'.format(i, result))
     fig.add(Subplot.PowerSpectrum(signl, prefix='Input'))
     fig.add(Subplot.PowerSpectrum(system_output, prefix='System Output'))
     fig.add(Subplot.PowerSpectrum(model_output, prefix='Model Output'))
