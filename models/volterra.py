@@ -33,18 +33,31 @@ class Volterra(Model):
     self.memory_depth = memory_depth
     self.kernels = Kernels(degree, memory_depth)
 
+    self._shadow = None
+    self._buffer = None
+
     # Call parent's construction methods
     Model.__init__(self)
 
   # region : Properties
 
   @property
-  def indices(self):
+  def indices_full(self):
     results = []
 
     for d in range(1, self.degree + 1):
       results += Kernels.get_homogeneous_indices(
         d, self.memory_depth[d - 1], False)
+
+    return results
+
+  @property
+  def indices_symmetric(self):
+    results = []
+
+    for d in range(1, self.degree + 1):
+      results += Kernels.get_homogeneous_indices(
+        d, self.memory_depth[d - 1], True)
 
     return results
 
@@ -57,21 +70,15 @@ class Volterra(Model):
       raise TypeError('!! Input must be an instance of Signal')
 
     y = np.zeros_like(input_)
-    for n in range(len(y)):
-      # Calculate y[n]
-      for lags in self.indices:
-        # lags = (\tau_1, \tau_2, \cdots, \tau_k)
-        # prod = h_k(\tau_1, \cdots, \tau_k) * \prod_{i=1}^k x[n-\tau_i]
-        prod = self.kernels[lags]
-        if prod == 0: continue
-        for lag in lags:
-          index = n - lag
-          if index < 0:
-            prod = 0
-            break
-          prod *= input_[index]
-        # Add prod to y[n]
-        y[n] += prod
+    for lags in self.indices_full:
+      # lags = (\tau_1, \tau_2, \cdots, \tau_k)
+      # prod = h_k(\tau_1, \cdots, \tau_k) * \prod_{i=1}^k x[n-\tau_i]
+      prod = self.kernels[lags]
+      if prod == 0: continue
+      for lag in lags:
+        prod *= self._delay(input_, lag)
+
+      y += prod
 
     output = Signal(y)
     output.__array_finalize__(input_)
@@ -79,9 +86,25 @@ class Volterra(Model):
 
 
   def set_kernel(self, index, value):
-    self.kernels.params[index] = value
+    self.kernels[index] = value
 
   # endregion : Public Methods
+
+  # region : Private Methods
+
+  def _delay(self, x, lag):
+    if self._shadow is not x:
+      self._shadow = x
+      max_lag = max(self.memory_depth)
+      assert max_lag > 0
+
+      self._buffer = []
+      for tau in range(max_lag):
+        self._buffer.append(np.append(np.zeros((tau,)), x)[:x.size])
+
+    return self._buffer[lag]
+
+  # endregion : Private Methods
 
   # region : Identification in Time Domain
 
@@ -171,7 +194,6 @@ class Kernels(object):
     for d in range(1, degree + 1):
       indices = Kernels.get_homogeneous_indices(d, depth[d - 1])
       for index in indices:
-        # self.params[index] = np.random.randn() / depth[d - 1] ** d
         self.params[index] = 0
 
   # region : Properties
@@ -185,7 +207,17 @@ class Kernels(object):
 
   @property
   def items(self):
-    return self.params.items()
+    return self.ordered_dict.items()
+
+  @property
+  def ordered_dict(self):
+    od = collections.OrderedDict()
+    if self.params.get((), None) is not None: od[()] = self.params[()]
+    for d in range(1, self.degree + 1):
+      indices = Kernels.get_homogeneous_indices(d, self.depth[d - 1])
+      for index in indices:
+        od[index] = self.params[index]
+    return od
 
   # endregion : Properties
 
@@ -194,16 +226,14 @@ class Kernels(object):
   def __getitem__(self, item):
     return self.params[tuple(sorted(item, reverse=True))]
 
+  def __setitem__(self, key, value):
+    self.params[tuple(sorted(key, reverse=True))] = value
+
   def __len__(self):
     return len(self.params)
 
   def __str__(self):
-    od = collections.OrderedDict()
-    for d in range(1, self.degree + 1):
-      indices = Kernels.get_homogeneous_indices(d, self.depth[d - 1])
-      for index in indices:
-        od[index] = self.params[index]
-    return "{}".format(od)
+    return "{}".format(self.ordered_dict)
 
   # endregion : Operator Overloading
 

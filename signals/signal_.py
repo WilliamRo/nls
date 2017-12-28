@@ -21,9 +21,19 @@ class Signal(np.ndarray):
 
   # region : Properties
 
+  # region : Basic Properties
+
   @property
   def is_real(self):
     return not np.iscomplex(self).any()
+
+  @property
+  def duration(self):
+    return None if self.fs is None else self.size / self.fs
+
+  # endregion : Basic Properties
+
+  # region : Properties in Transfer Domain
 
   @property
   def spectrum(self):
@@ -48,9 +58,21 @@ class Signal(np.ndarray):
     fs = self.size if self.fs is None else self.fs
     return np.abs(self.spectrum * np.conj(self.spectrum) / self.size / fs)
 
+  # endregion : Properties in Transfer Domian
+
+  # region : Statistic Properties
+
   @property
-  def duration(self):
-    return None if self.fs is None else self.size / self.fs
+  def average(self):
+    return float(np.average(self))
+
+  @property
+  def variance(self):
+    return float(np.var(self))
+
+  # endregion : Statistic Properties
+
+  # region : Properties for Plotting
 
   @property
   def time_axis(self):
@@ -67,6 +89,10 @@ class Signal(np.ndarray):
       else:
         return np.fft.fftshift(freqs)
 
+  # endregion : Properties for Plotting
+
+  # region : Other Properties
+
   @property
   def info_string(self):
     info = ""
@@ -76,9 +102,23 @@ class Signal(np.ndarray):
 
     return info
 
+  # endregion : Other Properties
+
   # endregion : Properties
 
   # region : Public Methods
+
+  def auto_correlation(self, lags, keep_dim=False):
+    if isinstance(lags, int):
+      lags = (0, lags)
+    if not (isinstance(lags, tuple) or isinstance(lags, list)):
+      raise TypeError('!! Input lags must be a a tuple or a list')
+    results = np.ones_like(self)
+    for lag in lags:
+      results *= np.append(np.zeros((lag,)), self)[:self.size]
+
+    if keep_dim: return results
+    return float(np.average(results))
 
   def plot(self, form_title=None, time_domain=False, db=True):
     if form_title is None: form_title = self.info_string
