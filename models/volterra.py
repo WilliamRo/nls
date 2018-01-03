@@ -75,9 +75,8 @@ class Volterra(Model):
       # prod = h_k(\tau_1, \cdots, \tau_k) * \prod_{i=1}^k x[n-\tau_i]
       prod = self.kernels[lags]
       if prod == 0: continue
-      for lag in lags:
-        prod *= self._delay(input_, lag)
 
+      for lag in lags: prod *= self._delay(input_, lag)
       y += prod
 
     output = Signal(y)
@@ -233,7 +232,10 @@ class Kernels(object):
     return len(self.params)
 
   def __str__(self):
-    return "{}".format(self.ordered_dict)
+    knls = 'Kernels\n' + '-' * 79
+    for lags, val in self.ordered_dict.items():
+      knls += '\nk{} = {:.4f}'.format(lags, val)
+    return knls
 
   # endregion : Operator Overloading
 

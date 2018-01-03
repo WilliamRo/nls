@@ -2,7 +2,7 @@ import numpy as np
 
 from signals.generator import gaussian_white_noise
 from signals.generator import multi_tone
-from models import Volterra
+from models import Volterra, Wiener
 from signals.utils import Figure, Subplot
 
 
@@ -16,16 +16,26 @@ show = True
 # ==============================================================================
 systems = []
 
-system = Volterra(degree=2, memory_depth=3)
+system = Volterra(degree=3, memory_depth=3)
 system.kernels.params[(0,)] = 1
-# system.kernels.params[(1,)] = 1.6
-# system.kernels.params[(2,)] = 2.7
+system.kernels.params[(1,)] = 1.6
+system.kernels.params[(2,)] = 2.7
 system.kernels.params[(0, 0)] = 1.2
 system.kernels.params[(1, 0)] = 3.1
 system.kernels.params[(1, 1)] = 1.9
 system.kernels.params[(2, 0)] = 5.9
 system.kernels.params[(2, 1)] = 1.5
 system.kernels.params[(2, 2)] = 2.0
+system.kernels.params[(0, 0, 0)] = 1.2
+system.kernels.params[(1, 0, 0)] = 0.5
+system.kernels.params[(1, 1, 0)] = 2.0
+system.kernels.params[(1, 1, 1)] = 4.1
+system.kernels.params[(2, 0, 0)] = 3.0
+system.kernels.params[(2, 1, 0)] = 1.2
+system.kernels.params[(2, 1, 1)] = 1.3
+system.kernels.params[(2, 2, 0)] = 3.1
+system.kernels.params[(2, 2, 1)] = 0.6
+system.kernels.params[(2, 2, 2)] = 1.0
 
 systems.append(system)
 
@@ -42,8 +52,8 @@ signals.append(multi_tone([300, 500], 1500, 2, noise_power=1e-3))
 print(">> Identifying ...")
 models = []
 
-model = Volterra(degree=2, memory_depth=3)
-A, N = 2, 50000
+model = Wiener(degree=3, memory_depth=3)
+A, N = 1, 50000
 input_ = gaussian_white_noise(A, N, N)
 output = system(input_)
 model.cross_correlation(input_, output, A)

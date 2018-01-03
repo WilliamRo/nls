@@ -21,6 +21,22 @@ class Wiener(Volterra):
 
   # region : Public Methods
 
+  def ortho_check(self, input_):
+    print('>> Properties of input noise: ')
+    print('... E[X(t)] = {:.4f}, Var[X(t)] = {:.4f}\n'.format(
+      input_.average, input_.variance))
+
+    G = {}
+    for i in range(1, self.degree + 1):
+      G[i] = self.G_n(i, input_)
+      print('>> E[G_{}] = {:.4f}'.format(i, G[i].average))
+
+    print()
+    for i in range(1, self.degree + 1):
+      for j in range(i + 1, self.degree + 1):
+        print('>> <G_{}, G_{}> = {:.4f}'.format(
+          i, j, float(np.average(G[i] * G[j]))))
+
   def inference(self, input_):
     # Sanity check
     if not isinstance(input_, Signal):
@@ -56,14 +72,15 @@ class Wiener(Volterra):
     indices_pool = self.kernels.get_homogeneous_indices(
       n - i, self.memory_depth[n - i - 1], symmetric=False)
     for indices in indices_pool:
+      assert isinstance(indices, list) or isinstance(indices, tuple)
       # Determine indices
       lags = indices + indices[slice(n - 2 * i, n - i)]
       x_lags = indices[slice(n - 2 * i)]
 
       prod = self.kernels[lags]
       if prod == 0: continue
-      for lag in x_lags:
-        prod *= self._delay(x, lag)
+
+      for lag in x_lags: prod *= self._delay(x, lag)
       y_i += prod
 
     output = Signal(y_i * self._get_coef(n, i))
@@ -84,13 +101,12 @@ class Wiener(Volterra):
   # region : Identification in Time Domain
 
   def cross_correlation(self, input_, output, intensity):
-    x, y = input_, output
+    x, y = input_.copy(), output.copy()
     assert isinstance(x, Signal) and isinstance(y, Signal)
-    N = x.size
     self.A = intensity
 
     # Calculate k_0
-    self.kernels[()] = input_.average
+    self.kernels[()] = output.average
 
     # Calculate subsequent kernels
     for n in range(1, self.degree + 1):
@@ -107,10 +123,66 @@ class Wiener(Volterra):
 
   # endregion : Identification in Time Domain
 
+  # region : Experiment
+
+  @staticmethod
+  def schetzen_1965(a=1, knls=None, A=1, length=5e5):
+    # Check input
+    if knls is None:
+      knls = [2.2, 2.5, 0.2, 5.1, 2.8]
+    assert isinstance(knls, list) or isinstance(knls, tuple)
+    N = len(knls)
+    length = int(length)
+
+    # Define system using Volterra series
+    volterra = Volterra(degree=2, memory_depth=N)
+    for lags in volterra.kernels.get_homogeneous_indices(2, N):
+      volterra.set_kernel(lags, knls[lags[0]] * knls[lags[1]] * a)
+
+    def system(v):
+      y = np.zeros_like(v)
+      for tau, knl in enumerate(knls):
+        y += volterra._delay(v, tau) * knl
+      return a * y * y
+
+    # Define model
+    model = Wiener(degree=2, memory_depth=N)
+
+    # Identification
+    from signals.generator import gaussian_white_noise
+    noise = gaussian_white_noise(A, length, length)
+    output_v = volterra(noise)
+    output_s = system(noise)
+
+    model.cross_correlation(noise, output_s, A)
+
+    print('>> delta = {:.5f}'.format(np.linalg.norm(output_s - output_v)))
+
+    # Show delta
+    max_err, max_knl = 0, 0
+    for lags in volterra.kernels.get_homogeneous_indices(2, N):
+      pred = model.kernels[lags]
+      truth = volterra.kernels[lags]
+      delta = np.abs(pred - truth)
+      if abs(truth) > max_knl:
+        max_knl = abs(truth)
+        max_err = delta / pred * 100
+      print('k{} = {:.3f}, truth = {:.3f} (delta = {:.3f})'.format(
+        lags, pred, truth, delta))
+
+    print('>> Max Err = {:.2f}%'.format(max_err))
+
+
+  # endregion : Experiment
+
   """For some reasons, do not delete this line."""
 
 
 if __name__ == '__main__':
+  print('=' * 79)
+  Wiener.schetzen_1965()
+  print('-' * 79)
+
   model = Wiener(degree=4, memory_depth=3, A=1)
 
   model.set_kernel((), 3.6)
@@ -142,31 +214,5 @@ if __name__ == '__main__':
   N = int(1e6)
   input_ = gaussian_white_noise(1, N, N)
 
-  print('>> Properties of input noise: ')
-  print('... E[X(t)] = {:.4f}, Var[X(t)] = {:.4f}'.format(
-    input_.average, input_.variance))
-
-  print()
-
-  # for indices in model.indices_symmetric:
-  #   print('... E[{}] = {:.3f}'.format(
-  #     indices, input_.auto_correlation(indices)))
-
-  # assert False
-
-  G = {}
-  for i in range(1, model.degree + 1):
-    G[i] = model.G_n(i, input_)
-    print('>> E[G_{}] = {}'.format(i, np.average(G[i])))
-
-  print()
-
-  for i in range(1, model.degree + 1):
-    for j in range(i + 1, model.degree + 1):
-      print('>> <G_{}, G_{}> = {}'.format(i, j, np.average(G[i] * G[j])))
-
-  y = model.G_n(0, input_)
-  for y_n in G.values(): y += y_n
-  print('\n>> E[y(t)] = {}'.format(np.average(y)))
-
+  model.ortho_check(input_)
 
