@@ -216,3 +216,9 @@ if __name__ == '__main__':
 
   model.ortho_check(input_)
 
+  print('=' * 79)
+  a = model.G_n_i(2, 0, input_)
+  c = model.G_n(2, input_)
+  b = c - a
+  result = float(np.mean(c * b))
+  print('>> <c, b> = {:.6f}'.format(result))

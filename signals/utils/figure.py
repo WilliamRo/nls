@@ -62,13 +62,14 @@ class Figure(object):
 class Subplot(object):
   """Subplot definition in a figure"""
 
-  def __init__(self, signl, plot, db=False, prefix=None):
-    assert isinstance(signl, signals.signal_.Signal)
+  def __init__(self, signl, plot, db=False, prefix=None, **kwargs):
+    if signl is not None: assert isinstance(signl, signals.signal_.Signal)
     assert callable(plot)
     self.signl = signl
     self.plot = lambda: plot(self)
     self.db = db
     self.predix = prefix
+    self.kwargs = kwargs
 
   # region : Static Methods
 
@@ -84,9 +85,28 @@ class Subplot(object):
   def PowerSpectrum(signl, db=True, prefix=None):
     return Subplot(signl, Subplot._power_spectrum, db=db, prefix=prefix)
 
+  @staticmethod
+  def Default(x, ys, title=None, prefix=None,
+                xlabel=None, ylabel=None, legends=None):
+    return Subplot(None, Subplot._default_plot, prefix=prefix, x=x, ys=ys,
+                    xlabel=xlabel, ylabel=ylabel, legends=legends, title=title)
+
   # endregion : Static Methods
 
   # region : Private Methods
+
+  def _default_plot(self):
+    x = self.kwargs.get('x', None)
+    ys = self.kwargs.get('ys', None)
+    if x is None or ys is None:
+      raise ValueError('!! x and ys must not be None')
+    title = self.kwargs.get('title', None)
+    xlabel = self.kwargs.get('xlabel', None)
+    ylabel = self.kwargs.get('ylabel', None)
+    legends = self.kwargs.get('legends', None)
+
+    Subplot._plot(x, ys, title=title, xlabel=xlabel, ylabel=ylabel,
+                  legends=legends)
 
   def _time_domain_plot(self):
     xlabel = 'Time'
@@ -120,20 +140,30 @@ class Subplot(object):
     return title
 
   @staticmethod
-  def _plot(x, y, title=None, xlabel=None, ylabel=None, grid=True):
-    assert y is not None and isinstance(y, np.ndarray)
-    assert len(y.shape) == 1
-    if x is None:
-      x = np.arange(y.size)
+  def _plot(x, ys, title=None, xlabel=None, ylabel=None, grid=True,
+            **kwargs):
+    # Check inputs
+    legends = kwargs.get('legends', None)
+    if not isinstance(ys, list) and not isinstance(ys, tuple): ys = (ys,)
+    if x is None: x = np.arange(ys.size)
 
-    plt.plot(x, y)
+    args = ()
+    for y in ys:
+      assert y is not None and isinstance(y, np.ndarray)
+      assert len(y.shape) == 1
+      args += (x, y)
+
+    plt.plot(*args)
     plt.xlim(x[0], x[-1])
+
     if title is not None:
       plt.title(title)
     if xlabel is not None:
       plt.xlabel(xlabel)
     if ylabel is not None:
       plt.ylabel(ylabel)
+    if legends is not None:
+      plt.legend(legends)
 
     plt.grid(grid)
 

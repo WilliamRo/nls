@@ -201,7 +201,7 @@ class Kernels(object):
   def params_count(self):
     count = 0
     for d in range(1, self.degree + 1):
-      count += Kernels.nCr(self.depth[d - 1] + d - 1, d)
+      count += Model.comb(self.depth[d - 1] + d - 1, d)
     return count
 
   @property
@@ -253,11 +253,6 @@ class Kernels(object):
           indices.append((i,) + sub_index)
 
     return indices
-
-  @staticmethod
-  def nCr(n, r):
-    f = math.factorial
-    return int(f(n) / f(r) / f(n - r))
 
   # endregion : Static Methods
 
