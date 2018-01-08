@@ -47,11 +47,11 @@ class Laguerre(Model):
     return coef * y
 
   @staticmethod
-  def plot_laguerre(alphas=None, t=None, js=None):
+  def plot_laguerre(alphas=None, length=25, js=None):
     # Check inputs
-    if alphas is None: alphas = [0.2, 0.4, 0.8]
-    if t is None: t = np.arange(26)
+    if alphas is None: alphas = [0.2, 0.6]
     if js is None: js = [0, 1, 2, 3, 4]
+    t = np.arange(length + 1)
 
     if not isinstance(alphas, list) and not isinstance(alphas, tuple):
       alphas = [alphas]
@@ -66,17 +66,30 @@ class Laguerre(Model):
     # Plot
     from signals.utils import Figure, Subplot
     fig = Figure('Discrete Orthogonal Laguerre Functions')
+    title = (r"Laguerre bases $\{\phi_j[n;\alpha]\}$")
     for alpha in alphas:
-      title = r'$\alpha = {}$'.format(alpha)
       ys = []
       legends = []
       for j in js:
         ys.append(Laguerre.phi_j(alpha, j, t))
         legends.append(r'$j = {}$'.format(j))
-      fig.add(Subplot.Default(t, ys, title=title, legends=legends,
-                              xlabel='Time Unit'))
+      fig.add(Subplot.Default(t, ys, legends=legends, xlabel='Time Unit',
+                              title=title + r', $\alpha = {}$'.format(alpha)))
 
     fig.plot()
+
+  @staticmethod
+  def orthonormal_check(max_order=4, alpha=0.5, length=50):
+    """<\phi_i, \phi_j> = \sum_{n} phi_i[n] * phi_j[n]"""
+    ns = np.arange(length + 1)
+    pool = {}
+    for i in range(max_order + 1):
+      pool[i] = Laguerre.phi_j(alpha, i, ns)
+
+    for i in range(max_order + 1):
+      for j in range(i + 1):
+        products = np.sum(pool[i] * pool[j])
+        print(':: <L_{}, L_{}> = {:.4f}'.format(i, j, products))
 
   # endregion : Static Methods
 
@@ -86,7 +99,8 @@ class Laguerre(Model):
 if __name__ == "__main__":
   from signals.utils import Figure, Subplot
 
-  Laguerre.plot_laguerre()
+  Laguerre.orthonormal_check(3)
+  # Laguerre.plot_laguerre()
 
 
 

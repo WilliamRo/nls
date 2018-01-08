@@ -35,7 +35,9 @@ class Figure(object):
       subplot.plot()
 
     # Adjust subplot layout
-    plt.subplots_adjust(hspace=0.5, left=0.1, right=0.92, bottom=0.07, top=0.95)
+    plt.subplots_adjust(hspace=0.4, left=0.1, right=0.92,
+                        bottom=0.07, top=0.95)
+    plt.tight_layout(pad=1.6)
 
     # Show figure
     if show: plt.show()
