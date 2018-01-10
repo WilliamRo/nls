@@ -93,6 +93,10 @@ class Subplot(object):
     return Subplot(None, Subplot._default_plot, prefix=prefix, x=x, ys=ys,
                     xlabel=xlabel, ylabel=ylabel, legends=legends, title=title)
 
+  @staticmethod
+  def Custom(plot_function):
+    return Subplot(None, plot_function)
+
   # endregion : Static Methods
 
   # region : Private Methods

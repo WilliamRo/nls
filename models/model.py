@@ -13,7 +13,7 @@ class Model(object):
   """Base class of all models"""
 
   def __init__(self):
-    pass
+    self.logs = {}
 
   # region : Public Methods
 
@@ -44,6 +44,24 @@ class Model(object):
     return numer // denom
 
   # endregion : Static Methods
+
+  # region : Private Methods
+
+  @staticmethod
+  def _check_degree_and_depth(degree, memory_depth):
+    if isinstance(memory_depth, list) or isinstance(memory_depth, tuple):
+      if len(memory_depth) != degree:
+        raise ValueError('Memory depth for each degree should be specified')
+      for depth in memory_depth:
+        if depth < 0: raise ValueError('Memory depth must be non-negative')
+    elif memory_depth < 0:
+      raise ValueError('Memory depth must be non-negative')
+    else:
+      memory_depth = [memory_depth] * degree
+
+    return memory_depth
+
+  # endregion : Private Methods
 
   '''For some reason, do not delete this line'''
 

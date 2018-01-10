@@ -15,18 +15,7 @@ class Volterra(Model):
 
   def __init__(self, degree, memory_depth):
     # Sanity check
-    if degree <= 0:
-      raise ValueError('degree must be positive')
-
-    if isinstance(memory_depth, list) or isinstance(memory_depth, tuple):
-      if len(memory_depth) != degree:
-        raise ValueError('Memory depth for each degree should be specified')
-      for depth in memory_depth:
-        if depth < 0: raise ValueError('Memory depth must be non-negative')
-    elif memory_depth < 0:
-      raise ValueError('Memory depth must be non-negative')
-    else:
-      memory_depth = [memory_depth] * degree
+    memory_depth = Model._check_degree_and_depth(degree, memory_depth)
 
     # Initialize fields
     self.degree = degree
@@ -43,23 +32,11 @@ class Volterra(Model):
 
   @property
   def indices_full(self):
-    results = []
-
-    for d in range(1, self.degree + 1):
-      results += Kernels.get_homogeneous_indices(
-        d, self.memory_depth[d - 1], False)
-
-    return results
+    return self.kernels.get_indices(symmetric=False)
 
   @property
   def indices_symmetric(self):
-    results = []
-
-    for d in range(1, self.degree + 1):
-      results += Kernels.get_homogeneous_indices(
-        d, self.memory_depth[d - 1], True)
-
-    return results
+    return self.kernels.get_indices(symmetric=True)
 
   # endregion : Properties
 
@@ -180,7 +157,8 @@ class Kernels(object):
   MAX_PARAMS_COUNT = int(3e7)  # 100~200MB Memory
 
   def __init__(self, degree, depth):
-    assert isinstance(depth, list) or isinstance(depth, tuple)
+    if not isinstance(depth, list) or isinstance(depth, tuple):
+      depth = [depth] * degree
     self.degree = degree
     self.depth = depth
     self.params = {}
@@ -238,6 +216,18 @@ class Kernels(object):
     return knls
 
   # endregion : Operator Overloading
+
+  # region : Public Methods
+
+  def get_indices(self, symmetric=False):
+    results = []
+
+    for d in range(1, self.degree + 1):
+      results += self.get_homogeneous_indices(d, self.depth[d - 1], symmetric)
+
+    return results
+
+  # endregion : Public Methods
 
   # region : Static Methods
 

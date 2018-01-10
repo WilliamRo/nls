@@ -2,7 +2,7 @@ import numpy as np
 
 from signals.generator import gaussian_white_noise
 from signals.generator import multi_tone
-from models import Volterra, Wiener
+from models import Volterra, Wiener, Laguerre
 from signals.utils import Figure, Subplot
 
 
@@ -18,9 +18,9 @@ systems = []
 
 system = Volterra(degree=3, memory_depth=3)
 system.kernels.params[(0,)] = 1
-system.kernels.params[(1,)] = 1.6
-system.kernels.params[(2,)] = 2.7
-system.kernels.params[(0, 0)] = 1.2
+# system.kernels.params[(1,)] = 1.6
+# system.kernels.params[(2,)] = 2.7
+# system.kernels.params[(0, 0)] = 1.2
 system.kernels.params[(1, 0)] = 3.1
 system.kernels.params[(1, 1)] = 1.9
 system.kernels.params[(2, 0)] = 5.9
@@ -53,6 +53,7 @@ print(">> Identifying ...")
 models = []
 
 model = Wiener(degree=3, memory_depth=3)
+# model = Laguerre(alpha=0.5, degree=3, memory_depth=5, terms=5)
 A, N = 1, 50000
 input_ = gaussian_white_noise(A, N, N)
 output = system(input_)
