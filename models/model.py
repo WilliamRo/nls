@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import time
 import numpy as np
 import operator as op
 import functools
@@ -14,6 +15,7 @@ class Model(object):
 
   def __init__(self):
     self.logs = {}
+    self.time_point = None
 
   # region : Public Methods
 
@@ -25,6 +27,13 @@ class Model(object):
 
   def inference(self, *args, **kwargs):
     pass
+
+  def tic(self):
+    self.time_point = time.time()
+
+  def toc(self):
+    if self.time_point is None: return 0
+    return time.time() - self.time_point
 
   # endregion : Public Methods
 

@@ -42,12 +42,15 @@ class Volterra(Model):
 
   # region : Public Methods
 
-  def inference(self, input_):
+  def inference(self, input_, order=None):
     if not isinstance(input_, Signal):
       raise TypeError('!! Input must be an instance of Signal')
 
     y = np.zeros_like(input_)
-    for lags in self.indices_full:
+    if order is None: pool = self.indices_full
+    else: pool = self.kernels.get_homogeneous_indices(
+      order, self.memory_depth[order - 1], symmetric=False)
+    for lags in pool:
       # lags = (\tau_1, \tau_2, \cdots, \tau_k)
       # prod = h_k(\tau_1, \cdots, \tau_k) * \prod_{i=1}^k x[n-\tau_i]
       prod = self.kernels[lags]

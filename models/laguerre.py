@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-import time
 
 from models import Model, Wiener
 from models.volterra import Kernels
@@ -207,7 +206,7 @@ class Laguerre(Wiener):
 
   def _update_Phi_naive(self, input_):
     if self._shadow is input_: return
-    start_time = time.time()
+    self.tic()
     self._shadow = input_
 
     offset = self.N - 1
@@ -218,7 +217,7 @@ class Laguerre(Wiener):
         x_flip = np.flip(x[offset + n - (self.N - 1):offset + n + 1], axis=0)
         Phi[j, n] = np.sum(self.phi[j] * x_flip)
 
-    self.logs['naive_time'] = time.time() - start_time
+    self.logs['naive_time'] = self.toc()
 
     self.Phi = Phi
     return Phi
@@ -227,7 +226,7 @@ class Laguerre(Wiener):
   def _update_Phi_recursive(self, input_):
     """The recursive equation for Phi[j] (j > 0) seems to be erroneous"""
     if self._shadow is input_: return
-    start_time = time.time()
+    self.tic()
     self._shadow = input_
 
     Phi = np.zeros(shape=(self.J, input_.size), dtype=np.float64)
@@ -249,7 +248,7 @@ class Laguerre(Wiener):
         Phi[j][n] = (np.sqrt(self.alpha) * Phi[j][n - 1] +
                      np.sqrt(self.alpha) * Phi[j - 1][n] - Phi[j - 1][n - 1])
 
-    self.logs['recur_time'] = time.time() - start_time
+    self.logs['recur_time'] = self.toc()
     self.Phi = Phi
     return Phi
 
