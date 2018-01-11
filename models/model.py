@@ -19,14 +19,7 @@ class Model(object):
 
   # region : Public Methods
 
-  def build(self, *args, **kwargs):
-    pass
-
-  def train(self, *args, **kwargs):
-    pass
-
-  def inference(self, *args, **kwargs):
-    pass
+  # region : Utilities
 
   def tic(self):
     self.time_point = time.time()
@@ -35,7 +28,56 @@ class Model(object):
     if self.time_point is None: return 0
     return time.time() - self.time_point
 
+  # endregion : Utilities
+
+  def separate_interp(
+      self, input_, alphas=None, max_order=4, verbose=False):
+
+    # Sanity check
+    if not isinstance(input_, Signal):
+      raise TypeError('!! Input must be an instance of Signal')
+    if alphas is None:
+      alphas = []
+      for order in range(max_order):
+        alphas.append((-1)**order * (1 + order * 0.25))
+    if verbose: print('>> alphas = {}'.format(alphas))
+
+    N = len(alphas)
+
+    # Generate matrix R
+    R = np.zeros(shape=(N, input_.size))
+    for i in range(N): R[i] = self(alphas[i] * input_)
+
+    # Generate matrix A
+    A = np.zeros(shape=(N, N))
+    for r in range(N):
+      for c in range(N): A[r, c] = alphas[r] ** (c + 1)
+    inv_A = np.linalg.inv(A)
+    if verbose: print('>> ||inv(A)|| = {:.4f}'.format(np.linalg.norm(inv_A)))
+
+    # Separate
+    results = []
+    yn = np.matmul(inv_A, R)
+    for order in range(N):
+      results.append(Signal(yn[order]))
+      results[order].__array_finalize__(input_)
+
+    return results
+
+  def separate(self, input_, max_order):
+    results = []
+    for n in range(1, max_order + 1):
+      results.append(self.inference(input_, n))
+    return results
+
   # endregion : Public Methods
+
+  # region : Abstract Methods
+
+  def inference(self, *args, **kwargs):
+    raise NotImplementedError('!! Method not implemented')
+
+  # endregion : Abstract Methods
 
   # region : Static Methods
 
@@ -53,6 +95,13 @@ class Model(object):
     return numer // denom
 
   # endregion : Static Methods
+
+  # region : Operator Overloading
+
+  def __call__(self, input_):
+    return self.inference(input_)
+
+  # endregion : Operator Overloading
 
   # region : Private Methods
 

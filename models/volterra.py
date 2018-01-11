@@ -145,13 +145,6 @@ class Volterra(Model):
 
   # endregion : Identification in Frequency Domain
 
-  # region : Operator Overloading
-
-  def __call__(self, input_):
-    return self.inference(input_)
-
-  # endregion : Operator Overloading
-
   '''For some reason, do not delete this line'''
 
 
@@ -252,31 +245,110 @@ class Kernels(object):
   '''For some reason, do not delete this line'''
 
 
-if __name__ == '__main__':
+# region : Main Functions
+
+def define_and_plot(*args, **kwargs):
   from signals.generator import multi_tone
-  print(">> Running module volterra.py")
-
-  fs = 2000
-  duration = 1
-  freqs = [500, 800]
-  vrms = [2, 1]
-  phases = None
-  signal = multi_tone(freqs, fs, duration, vrms=vrms, phases=phases,
-                      noise_power=1e-4)
-
-  model = Volterra(degree=2, memory_depth=1)
-  model.kernels.params[(1, 0)] = 1
-  model.kernels.params[(1,)] = 1
-  # model.kernel.params[(0,)] = 1
-  output = model(signal)
-
-  # print(model.kernel)
-  # print('>> Delta = {}'.format(np.linalg.norm(signal - output)))
-
   from signals.utils import Figure, Subplot
-  fig = Figure('Input & Output')
-  db = True
-  fig.add(Subplot.AmplitudeSpectrum(signal, prefix='Input Signal', db=db))
-  fig.add(Subplot.AmplitudeSpectrum(output, prefix='Output Signal', db=db))
+
+  # Initiate model
+  model = Volterra(degree=3, memory_depth=3)
+  model.set_kernel((0,), 1.0)
+  model.set_kernel((1,), 0.3)
+  model.set_kernel((2,), 0.0)
+  model.set_kernel((0, 0), 0.0)
+  model.set_kernel((1, 0), 0.0)
+  model.set_kernel((1, 1), 0.0)
+  model.set_kernel((2, 0), 0.1)
+  model.set_kernel((2, 1), 0.0)
+  model.set_kernel((2, 2), 0.0)
+  model.set_kernel((0, 0, 0), 0.0)
+  model.set_kernel((1, 0, 0), 0.0)
+  model.set_kernel((1, 1, 0), 0.0)
+  model.set_kernel((1, 1, 1), 0.0)
+  model.set_kernel((2, 0, 0), 0.0)
+  model.set_kernel((2, 1, 0), 0.0)
+  model.set_kernel((2, 2, 0), 0.0)
+  model.set_kernel((2, 2, 1), 0.0)
+  model.set_kernel((2, 2, 2), 0.0)
+
+  # Generate multi tone signal
+  freqs = [160, 220]
+  signal = multi_tone(freqs, 1000, 2, noise_power=1e-3)
+  order = 2
+  response = model.inference(signal, order)
+
+  delta = np.linalg.norm(signal - response) / signal.size
+  print('>> Delta = {:.4f}'.format(delta))
+
+  # Plot
+  title = 'Volterra Response, Input freqs = {}'.format(freqs)
+  fig = Figure(title)
+  fig.add(Subplot.PowerSpectrum(signal, prefix='Input Signal'))
+  prefix = 'System Response{}'.format(
+    ' Order-{}'.format(order) if not order is None else '')
+
+  response = model(signal) - model.inference(signal, 2)
+  fig.add(Subplot.PowerSpectrum(response, prefix=prefix))
   fig.plot()
 
+def separate_test(*args, **kwargs):
+  from signals.generator import multi_tone
+  from signals.utils import Figure, Subplot
+
+  # Initiate model
+  model = Volterra(degree=3, memory_depth=3)
+  model.set_kernel((0,), 1.0)
+  model.set_kernel((1,), 0.2)
+  model.set_kernel((2,), 0.0)
+  model.set_kernel((0, 0), 0.0)
+  model.set_kernel((1, 0), 0.0)
+  model.set_kernel((1, 1), 0.0)
+  model.set_kernel((2, 0), 0.1)
+  model.set_kernel((2, 1), 0.0)
+  model.set_kernel((2, 2), 0.1)
+  model.set_kernel((0, 0, 0), 0.0)
+  model.set_kernel((1, 0, 0), 0.0)
+  model.set_kernel((1, 1, 0), 0.0)
+  model.set_kernel((1, 1, 1), 0.001)
+  model.set_kernel((2, 0, 0), 0.0)
+  model.set_kernel((2, 1, 0), 0.0)
+  model.set_kernel((2, 2, 0), 0.002)
+  model.set_kernel((2, 2, 1), 0.0)
+  model.set_kernel((2, 2, 2), 0.0)
+
+  # Generate multi tone signal
+  freqs = [160, 220]
+  signal = multi_tone(freqs, 1000, 2, noise_power=1e-3)
+  response = model(signal)
+
+  max_order = 2
+  yn = model.separate_interp(signal, max_order=max_order, verbose=True)
+  truth = model.separate(signal, max_order=max_order)
+
+  print('>> rms(response) = {:.4f}'.format(
+    np.linalg.norm(response) / signal.size))
+  for n in range(len(yn)):
+    delta = np.linalg.norm(yn[n] - truth[n]) / signal.size
+    print(':: Delta_{} = {:.4f}'.format(n + 1, delta))
+
+  # Separate Kernel
+
+  # Plot
+  bshow = True
+  if bshow:
+    for n in range(len(yn)):
+      fig = Figure('Volterra Separation order - {}'.format(n + 1))
+      fig.add(Subplot.PowerSpectrum(response, prefix='response'))
+      fig.add(Subplot.PowerSpectrum(
+        truth[n], prefix='truth order - {}'.format(n + 1)))
+      fig.add(Subplot.PowerSpectrum(
+        yn[n], prefix='pred order - {}'.format(n + 1)))
+      fig.plot()
+
+
+if __name__ == '__main__':
+  # define_and_plot()
+  separate_test()
+
+# endregion : Main Functions

@@ -37,14 +37,14 @@ class Wiener(Volterra):
         print('>> <G_{}, G_{}> = {:.4f}'.format(
           i, j, float(np.average(G[i] * G[j]))))
 
-  def inference(self, input_):
+  def inference(self, input_, order=None):
     # Sanity check
     if not isinstance(input_, Signal):
       raise TypeError('!! Input must be an instance of Signal')
 
     y = np.zeros_like(input_)
-    for n in range(self.degree + 1):
-      y += self.G_n(n, input_)
+    orders = range(self.degree + 1) if order is None else [order]
+    for n in orders: y += self.G_n(n, input_)
 
     output = Signal(y)
     output.__array_finalize__(input_)

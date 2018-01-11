@@ -44,7 +44,7 @@ class Laguerre(Wiener):
 
   # region : Public Methods
 
-  def inference(self, input_):
+  def inference(self, input_, order=None):
     if not isinstance(input_, Signal):
       raise TypeError('!! Input must be an instance of Signal')
 
@@ -53,7 +53,10 @@ class Laguerre(Wiener):
 
     # Calculate output
     y = self.coefs[()] * np.ones_like(input_)
-    for indices in self.coefs.get_indices(symmetric=False):
+    pool = (self.coefs.get_indices(symmetric=False) if order is None
+            else self.coefs.get_homogeneous_indices(
+      order, self.memory_depth[order + 1], symmetric=False))
+    for indices in pool:
       y_ = self.coefs[indices] * np.ones_like(input_)
       for index in indices: y_ *= self.Phi[index]
       y += y_
