@@ -23,7 +23,7 @@ def multi_tone(freqs, fs, duration, vrms=None, phases=None,
   t = np.arange(0, duration, 1 / fs)
   x = np.zeros_like(t)
   for i in range(len(freqs)):
-    x += vrms[i] * np.sqrt(2) * np.sin(2 * np.pi * freqs[i] * t + phases[i])
+    x += vrms[i] * np.sqrt(2) * np.cos(2 * np.pi * freqs[i] * t + phases[i])
 
   # Instantiate Signal
   signl = signal_.Signal(x, fs=fs, signal_freqs=freqs, sampling_freq=fs)
