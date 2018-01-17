@@ -31,6 +31,10 @@ class Signal(np.ndarray):
   def duration(self):
     return None if self.fs is None else self.size / self.fs
 
+  @property
+  def norm(self):
+    return np.linalg.norm(self)
+
   # endregion : Basic Properties
 
   # region : Properties in Transfer Domain

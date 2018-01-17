@@ -20,7 +20,7 @@ class Figure(object):
 
   # region : Public Methods
 
-  def plot(self, show=True):
+  def plot(self, show=True, ylim=None):
     nrows = len(self.subplots)
     if nrows == 0:
       print('>> Nothing to be plotted')
@@ -33,6 +33,10 @@ class Figure(object):
       row += 1
       plt.subplot(nrows, 1, row)
       subplot.plot()
+      if ylim is not None:
+        if not isinstance(ylim, (list, tuple)) and ylim is True:
+          ylim = plt.ylim()
+        else: plt.ylim(ylim)
 
     # Adjust subplot layout
     plt.subplots_adjust(hspace=0.4, left=0.1, right=0.92,
@@ -73,19 +77,36 @@ class Subplot(object):
     self.predix = prefix
     self.kwargs = kwargs
 
+  # region : Properties
+
+  @property
+  def ys_and_legends(self):
+    ys = [self.signl]
+    legends = ['Signal']
+    for key, val in self.kwargs.items():
+      if isinstance(val, signals.Signal) and val.size == self.signl.size:
+        ys.append(val)
+        legends.append(key)
+    return ys, legends
+
+  # endregion : Properties
+
   # region : Static Methods
 
   @staticmethod
-  def TimeDomainPlot(signl, prefix=None):
-    return Subplot(signl, Subplot._time_domain_plot, db=False, prefix=prefix)
+  def TimeDomainPlot(signl, prefix=None, **kwargs):
+    return Subplot(
+      signl, Subplot._time_domain_plot, db=False, prefix=prefix, **kwargs)
 
   @staticmethod
-  def AmplitudeSpectrum(signl, db=True, prefix=None):
-    return Subplot(signl, Subplot._amplitude_spectrum, db=db, prefix=prefix)
+  def AmplitudeSpectrum(signl, db=True, prefix=None, **kwargs):
+    return Subplot(
+      signl, Subplot._amplitude_spectrum, db=db, prefix=prefix, **kwargs)
 
   @staticmethod
-  def PowerSpectrum(signl, db=True, prefix=None):
-    return Subplot(signl, Subplot._power_spectrum, db=db, prefix=prefix)
+  def PowerSpectrum(signl, db=True, prefix=None, **kwargs):
+    return Subplot(
+      signl, Subplot._power_spectrum, db=db, prefix=prefix, **kwargs)
 
   @staticmethod
   def Default(x, ys, title=None, prefix=None,
@@ -117,27 +138,36 @@ class Subplot(object):
   def _time_domain_plot(self):
     xlabel = 'Time'
     if self.signl.fs is not None: xlabel += ' (s)'
-    Subplot._plot(self.signl.time_axis, self.signl,
+    ys, legends = self.ys_and_legends
+    Subplot._plot(self.signl.time_axis, ys, legends=legends,
                   title=self._make_title('Time Domain Plot'),
                   xlabel=xlabel, ylabel='Voltage')
 
   def _amplitude_spectrum(self):
-    density = (20 * np.log10(self.signl.amplitude_spectrum) if self.db
-               else self.signl.amplitude_spectrum)
-    Subplot._plot(self.signl.freq_axis, density)
+    ys, legends = self.ys_and_legends
+    densities = []
+    for y in ys:
+      assert isinstance(y, signals.Signal)
+      densities.append(20 * np.log10(y.amplitude_spectrum) if self.db
+                       else y.amplitude_spectrum)
+    # Subplot._plot(self.signl.freq_axis, density)
     ylabel = 'Spectrum Amplitude'
     if self.db: ylabel += ' (dB)'
-    Subplot._plot(self.signl.freq_axis, density,
+    Subplot._plot(self.signl.freq_axis, densities, legends=legends,
                   title=self._make_title('Amplitude Spectrum'),
                   xlabel='Frequency (Hz)', ylabel=ylabel)
 
   def _power_spectrum(self):
-    density = (10 * np.log10(self.signl.power_spectrum_density) if self.db
-               else self.signl.power_spectrum_density)
-    Subplot._plot(self.signl.freq_axis, density)
+    ys, legends = self.ys_and_legends
+    densities = []
+    for y in ys:
+      assert isinstance(y, signals.Signal)
+      densities.append(10 * np.log10(y.power_spectrum_density) if self.db
+                       else y.power_spectrum_density)
+    # Subplot._plot(self.signl.freq_axis, density)
     ylabel = 'Power'
     if self.db: ylabel += ' (dB)'
-    Subplot._plot(self.signl.freq_axis, density,
+    Subplot._plot(self.signl.freq_axis, densities, legends=legends,
                   title=self._make_title('Power Spectrum'),
                   xlabel='Frequency (Hz)', ylabel=ylabel)
 
@@ -151,7 +181,7 @@ class Subplot(object):
     # Check inputs
     legends = kwargs.get('legends', None)
     if not isinstance(ys, list) and not isinstance(ys, tuple): ys = (ys,)
-    if x is None: x = np.arange(ys.size)
+    if x is None: x = np.arange(ys[0].size)
 
     args = ()
     for y in ys:
