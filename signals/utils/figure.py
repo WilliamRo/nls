@@ -46,6 +46,8 @@ class Figure(object):
     # Show figure
     if show: plt.show()
 
+    return self.figure
+
   def add(self, subplot):
     if not isinstance(subplot, Subplot):
       raise TypeError('Input must be an instance of Subplot')
