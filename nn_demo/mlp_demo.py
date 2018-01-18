@@ -15,6 +15,15 @@ import model_lib
 
 
 # =============================================================================
+#  Global configuration
+# =============================================================================
+wiener_train = True
+FLAGS.train = True
+FLAGS.overwrite = False
+bshow = False
+nn_mark = 'mlp_3x20_reg=0.00'
+
+# =============================================================================
 #  Define system to be identify
 # =============================================================================
 # Define the black box using Volterra model
@@ -47,14 +56,9 @@ system.set_kernel((2, 2, 2), 0.0)
 # =============================================================================
 #  Identification
 # =============================================================================
-# TFrame configuration
-wiener_train = True
-FLAGS.train = True
-FLAGS.overwrite = True
-bshow = False
 
-# Prepare Gaussian white noise
-num = 1
+# region : Generate data sets
+num = 10
 A = 1
 N = 100000
 noises = []
@@ -65,12 +69,7 @@ for i in range(num):
   noises.append(noise)
   noise_responses.append(noise_response)
 train_set = DataSet(noises, noise_responses, memory_depth=3, intensity=A)
-
-val_A = 1
-val_N = 10000
-val_noise = gaussian_white_noise(val_A, val_N, val_N)
-val_response = system(val_noise)
-val_set = DataSet(val_noise, val_response, memory_depth=3, intensity=val_A)
+# endregion : Generate data sets
 
 # Prepare test signal
 freqs = [120, 310]
@@ -81,21 +80,23 @@ noise_power = 1e-3
 signal = multi_tone(freqs, fs, duration, vrms, noise_power=noise_power)
 system_output = system(signal)
 
+val_set = DataSet(signal, system_output, memory_depth=3)
+
 # Wiener
 degree = 2
 memory_depth = 3
 wiener = Wiener(degree, memory_depth)
-wiener.cross_correlation(noises[0], noise_responses[0], A)
-# wiener.identify(train_set, val_set)
+# wiener.cross_correlation(noises[0], noise_responses[0], A)
+wiener.identify(train_set, val_set)
 
 # MLP
 # mlp = NeuralNet(memory_depth=memory_depth, hidden_dims=[10, 10],
 #                 build_default=True, mark='mlp_10-10')
-mlp = model_lib.mlp_00(memory_depth, 'mlp_8_8')
+mlp = model_lib.mlp_00(memory_depth, nn_mark)
 
 if FLAGS.train:
   mlp.identify(train_set, val_set, batch_size=50,
-               print_cycle=100, epoch=2, snapshot_cycle=2000,
+               print_cycle=100, epoch=50, snapshot_cycle=2000,
                snapshot_function=mlp.gen_snapshot_function(
                  signal, system_output))
 
@@ -106,12 +107,14 @@ print('>> ||system_output|| = {:.4f}'.format(system_output.norm))
 # Wiener
 wiener_output = wiener(signal)
 wiener_delta = system_output - wiener_output
-print('>> ||wiener_delta|| = {:.4f}'.format(wiener_delta.norm))
+wiener_ratio = wiener_delta.norm / system_output.norm * 100
+print('>> Wiener err ratio = {:.2f} %'.format(wiener_ratio))
 
 # MLP
 mlp_output = mlp(signal)
 mlp_delta = system_output - mlp_output
-print('>> ||mlp_delta|| = {:.4f}'.format(mlp_delta.norm))
+mlp_ratio = mlp_delta.norm / system_output.norm * 100
+print('>> MLP err ratio = {:.2f} %'.format(mlp_ratio))
 
 # Plot
 if bshow:

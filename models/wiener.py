@@ -122,7 +122,7 @@ class Wiener(Volterra):
         pred = self(val_input)
         delta = pred - val_output
         err = delta.norm / truth_norm * 100
-        status += 'Validation Err = {:.3f} %'.format(err)
+        status += 'Error Ratio = {:.3f} %'.format(err)
 
       console.show_status(status)
       time.sleep(0.2)
