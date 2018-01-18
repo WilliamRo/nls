@@ -3,13 +3,18 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
+import time
 
-from models import Volterra
+from models import Volterra, Model
 from signals import Signal
+from signals.utils import DataSet
+
+from tframe import console
 
 
 class Wiener(Volterra):
   """Volterra series in Wiener representation"""
+  extension = 'wn'
 
   def __init__(self, degree, memory_depth, A=1):
     # Call parent's construction method
@@ -18,6 +23,7 @@ class Wiener(Volterra):
 
     # Initiate fields
     self.A = A
+    self.total = 0
 
   # region : Public Methods
 
@@ -87,6 +93,46 @@ class Wiener(Volterra):
     output.__array_finalize__(x)
     return output
 
+  def identify(self, train_set, val_set=None):
+    # Sanity check
+    if not isinstance(train_set, DataSet):
+      raise TypeError('!! train_set must be a DataSet')
+    if val_set is not None and not isinstance(val_set, DataSet):
+      raise TypeError('!! val_set must be a DataSet')
+    if train_set.intensity is None:
+      raise TypeError('!! Intensity must not be None')
+
+    # Begin iteration
+    console.section('[Wiener] Begin Identification')
+
+    truth_norm, val_input, val_output = None, None, None
+    if val_set is not None:
+      val_input = val_set.signls[0]
+      val_output = val_set.responses[0]
+      truth_norm = val_output.norm
+
+    for i in range(len(train_set.signls)):
+      input_ = train_set.signls[i]
+      output = train_set.responses[i]
+      self.cross_correlation(input_, output, train_set.intensity)
+
+      status = 'Round {} finished. '.format(i + 1)
+
+      if val_set is not None:
+        pred = self(val_input)
+        delta = pred - val_output
+        err = delta.norm / truth_norm * 100
+        status += 'Validation Err = {:.3f} %'.format(err)
+
+      console.show_status(status)
+      time.sleep(0.2)
+
+    console.show_status('Identification done.')
+
+  @staticmethod
+  def load(filename):
+    return Model.load(filename + Wiener.extension)
+
   # endregion : Public Methods
 
   # region : Private Methods
@@ -102,11 +148,13 @@ class Wiener(Volterra):
 
   def cross_correlation(self, input_, output, intensity):
     x, y = input_.copy(), output.copy()
+    alpha = self.total / (self.total + input_.size)
+    beta = 1. - alpha
     assert isinstance(x, Signal) and isinstance(y, Signal)
     self.A = intensity
 
     # Calculate k_0
-    self.kernels[()] = output.average
+    self.kernels[()] = output.average * beta + self.kernels[()] * alpha
 
     # Calculate subsequent kernels
     for n in range(1, self.degree + 1):
@@ -118,8 +166,12 @@ class Wiener(Volterra):
         prod = np.copy(y)
         for lag in lags:
           prod *= self._delay(x, lag)
-        self.kernels[lags] = float(np.average(prod)) / (
-          np.math.factorial(n) * self.A**n)
+        value = float(np.average(prod)) / (np.math.factorial(n) * self.A**n)
+        self.kernels[lags] *= alpha
+        self.kernels[lags] += beta * value
+
+    # Update self.total
+    self.total += input_.size
 
   # endregion : Identification in Time Domain
 

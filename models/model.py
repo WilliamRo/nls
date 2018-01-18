@@ -7,11 +7,14 @@ import numpy as np
 import operator as op
 import functools
 
+import pickle
+
 from signals import Signal
 
 
 class Model(object):
   """Base class of all models"""
+  extension = '.mdl'
 
   def __init__(self):
     self.logs = {}
@@ -27,6 +30,15 @@ class Model(object):
   def toc(self):
     if self.time_point is None: return 0
     return time.time() - self.time_point
+
+  def save(self, filename):
+    with open(filename + self.extension, 'wb') as output:
+      pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
+
+  @staticmethod
+  def load(filename):
+    with open(filename, 'rb') as input_:
+      return pickle.load(input_)
 
   # endregion : Utilities
 

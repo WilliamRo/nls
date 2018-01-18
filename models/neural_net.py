@@ -47,20 +47,9 @@ class NeuralNet(Model):
     output.__array_finalize__(input_)
     return output
 
-  def identify(self, input_, output, val_input=None, val_output=None,
+  def identify(self, training_set, val_set=None,
                batch_size=64, print_cycle=100, snapshot_cycle=1000,
                snapshot_function=None, epoch=1):
-    # Prepare training set
-    input_ = self._gen_mlp_input(input_)
-    training_set = TFData(input_, targets=output.reshape(output.size, 1))
-
-    # Prepare validation set
-    val_set = None
-    if val_input is not None and val_output is not None:
-      val_input = self._gen_mlp_input(val_input)
-      val_set = TFData(
-        val_input, targets=val_output.reshape(val_output.size, 1))
-
     # Train
     self.nn.train(batch_size=batch_size, training_set=training_set,
                   validation_set=val_set, print_cycle=print_cycle,
@@ -93,11 +82,7 @@ class NeuralNet(Model):
   # region : Private Methods
 
   def _gen_mlp_input(self, input_):
-    N = input_.size
-    x = np.append(np.zeros(shape=(self.D - 1,)), input_)
-    features = np.zeros(shape=(N, self.D))
-    for i in range(N): features[i] = x[i:i+self.D]
-    return features
+    return input_.causal_matrix(self.memory_depth)
 
   def _create_default_mlp(self, hidden_dims=None):
     from tframe.layers import Input, Linear, Activation
