@@ -21,6 +21,7 @@ class Volterra(Model):
     self.degree = degree
     self.memory_depth = memory_depth
     self.kernels = Kernels(degree, memory_depth)
+    self.order_lock = None
 
     self._shadow = None
     self._buffer = None
@@ -42,14 +43,22 @@ class Volterra(Model):
 
   # region : Public Methods
 
-  def inference(self, input_, order=None):
+  def inference(self, input_, orders=None, *args, **kwargs):
+    # Sanity check
     if not isinstance(input_, Signal):
       raise TypeError('!! Input must be an instance of Signal')
+    if self.order_lock is not None: orders = self.order_lock
+    if orders is not None:
+      orders = self._check_orders(orders)
 
+    # Calculate
     y = np.zeros_like(input_)
-    if order is None: pool = self.indices_full
-    else: pool = self.kernels.get_homogeneous_indices(
-      order, self.memory_depth[order - 1], symmetric=False)
+    if orders is None: pool = self.indices_full
+    else:
+      pool = []
+      for order in orders:
+        pool += list(self.kernels.get_homogeneous_indices(
+          order, self.memory_depth[order - 1], symmetric=False))
     for lags in pool:
       # lags = (\tau_1, \tau_2, \cdots, \tau_k)
       # prod = h_k(\tau_1, \cdots, \tau_k) * \prod_{i=1}^k x[n-\tau_i]
@@ -67,6 +76,10 @@ class Volterra(Model):
   def set_kernel(self, index, value):
     self.kernels[index] = value
 
+
+  def lock_orders(self, orders):
+    self.order_lock = self._check_orders(orders)
+
   # endregion : Public Methods
 
   # region : Private Methods
@@ -82,6 +95,16 @@ class Volterra(Model):
         self._buffer.append(np.append(np.zeros((tau,)), x)[:x.size])
 
     return self._buffer[lag]
+
+  def _check_orders(self, orders):
+    if not isinstance(orders, (list, tuple)): orders = (orders,)
+    orders = tuple(set(orders))
+    for order in orders:
+      if order < 1 or order > self.degree:
+        raise ValueError(
+          '!! input order must be an integer between {} and {} but {} is '
+          'given'.format(1, self.degree, order))
+    return orders
 
   # endregion : Private Methods
 
@@ -191,6 +214,12 @@ class Kernels(object):
       for index in indices:
         od[index] = self.params[index]
     return od
+
+  @property
+  def linear_coefs(self):
+    coefs = np.zeros(shape=(self.depth[0],))
+    for i in range(coefs.size): coefs[i] = self[(i,)]
+    return np.flip(coefs, 0)
 
   # endregion : Properties
 

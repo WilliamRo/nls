@@ -110,8 +110,8 @@ class Model(object):
 
   # region : Operator Overloading
 
-  def __call__(self, input_):
-    return self.inference(input_)
+  def __call__(self, input_, *args, **kwargs):
+    return self.inference(input_, *args, **kwargs)
 
   # endregion : Operator Overloading
 

@@ -21,7 +21,8 @@ wiener_train = True
 FLAGS.train = True
 FLAGS.overwrite = True
 bshow = False
-nn_mark = 'mlp_4x20_reg=0.01'
+mlp_mark = 'mlp_od_12(1)'
+vn_mark = 'vn_od_12(1)'
 
 # =============================================================================
 #  Define system to be identify
@@ -30,27 +31,28 @@ nn_mark = 'mlp_4x20_reg=0.01'
 degree = 3
 memory_depth = 3
 system = Volterra(degree, memory_depth)
+system.lock_orders([1, 2])
 
 # region : Set kernels
 system.set_kernel((0,), 1.0)
-system.set_kernel((1,), 0.4)
-system.set_kernel((2,), 0.3)
+system.set_kernel((1,), 2.4)
+system.set_kernel((2,), 0.5)
 system.set_kernel((0, 0), 0.1)
-system.set_kernel((1, 0), 0.0)
-system.set_kernel((1, 1), 1.0)
-system.set_kernel((2, 0), 0.1)
-system.set_kernel((2, 1), 0.0)
-system.set_kernel((2, 2), 1.3)
-system.set_kernel((0, 0, 0), 0.0)
-system.set_kernel((1, 0, 0), 0.0)
-system.set_kernel((1, 1, 0), 0.1)
-system.set_kernel((1, 1, 1), 0.0)
-system.set_kernel((2, 0, 0), 0.0)
+system.set_kernel((1, 0), 2.0)
+system.set_kernel((1, 1), 1.2)
+system.set_kernel((2, 0), 0.4)
+system.set_kernel((2, 1), 3.1)
+system.set_kernel((2, 2), 1.7)
+system.set_kernel((0, 0, 0), 0.2)
+system.set_kernel((1, 0, 0), 1.2)
+system.set_kernel((1, 1, 0), 0.5)
+system.set_kernel((1, 1, 1), 0.2)
+system.set_kernel((2, 0, 0), 2.3)
 system.set_kernel((2, 1, 0), 0.3)
-system.set_kernel((2, 1, 1), 0.0)
-system.set_kernel((2, 2, 0), 0.0)
-system.set_kernel((2, 2, 1), 0.2)
-system.set_kernel((2, 2, 2), 0.0)
+system.set_kernel((2, 1, 1), 2.0)
+system.set_kernel((2, 2, 0), 0.1)
+system.set_kernel((2, 2, 1), 1.2)
+system.set_kernel((2, 2, 2), 3.0)
 # endregion : Set kernels
 
 # =============================================================================
@@ -60,7 +62,7 @@ system.set_kernel((2, 2, 2), 0.0)
 # region : Generate data sets
 num = 2
 A = 1
-N = 100000
+N = 50000
 noises = []
 noise_responses = []
 for i in range(num):
@@ -90,13 +92,21 @@ wiener = Wiener(degree, memory_depth)
 wiener.identify(train_set, val_set)
 
 # MLP
-mlp = model_lib.mlp_00(memory_depth, nn_mark)
+mlp = model_lib.mlp_00(memory_depth, mlp_mark)
 
 if FLAGS.train:
   mlp.identify(train_set, val_set, batch_size=50,
                print_cycle=100, epoch=1, snapshot_cycle=2000,
                snapshot_function=mlp.gen_snapshot_function(
                  signal, system_output))
+
+# VN
+vn = model_lib.vn_00(memory_depth, vn_mark)
+if FLAGS.train:
+  vn.identify(train_set, val_set, batch_size=50,
+              print_cycle=100, epoch=1, snapshot_cycle=2000,
+              snapshot_function=mlp.gen_snapshot_function(
+                signal, system_output))
 
 # =============================================================================
 #  Verification

@@ -8,6 +8,7 @@ import tensorflow as tf
 from tframe import console
 from tframe import Predictor
 from tframe import TFData
+from tframe.models.sl.vn import VolterraNet
 
 from models import Model
 from signals import Signal
@@ -17,7 +18,7 @@ from signals.generator import gaussian_white_noise
 class NeuralNet(Model):
   """A model for non-linear system based on neural network"""
 
-  def __init__(self, memory_depth, mark='nn', **kwargs):
+  def __init__(self, memory_depth, mark='nn', degree=None, **kwargs):
     # Sanity check
     if memory_depth < 1: raise ValueError('!! Memory depth should be positive')
 
@@ -27,12 +28,10 @@ class NeuralNet(Model):
     # Initialize fields
     self.memory_depth = memory_depth
     self.D = memory_depth
-    self.nn = Predictor(mark=mark)
-
-    # Build default nn
-    build_default = kwargs.get('build_default', False)
-    hidden_dims = kwargs.get('hidden_dims', None)
-    if build_default: self._create_default_mlp(hidden_dims)
+    self.degree = degree
+    # TODO: compromise
+    if degree is None: self.nn = Predictor(mark=mark)
+    else: self.nn = VolterraNet(degree, memory_depth, mark)
 
   # region : Public Methods
 
@@ -47,13 +46,13 @@ class NeuralNet(Model):
     output.__array_finalize__(input_)
     return output
 
-  def identify(self, training_set, val_set=None,
+  def identify(self, training_set, val_set=None, probe=None,
                batch_size=64, print_cycle=100, snapshot_cycle=1000,
                snapshot_function=None, epoch=1):
     # Train
     self.nn.train(batch_size=batch_size, training_set=training_set,
                   validation_set=val_set, print_cycle=print_cycle,
-                  snapshot_cycle=snapshot_cycle, epoch=epoch,
+                  snapshot_cycle=snapshot_cycle, epoch=epoch, probe=None,
                   snapshot_function=snapshot_function)
 
   def gen_snapshot_function(self, input_, response):
@@ -64,7 +63,7 @@ class NeuralNet(Model):
       raise TypeError('!! Input and response should be instances of Signal')
 
     def snapshot_function(obj):
-      assert isinstance(obj, Predictor)
+      assert isinstance(obj, (Predictor, VolterraNet))
       pred = self(input_)
       delta = pred - response
 
@@ -83,26 +82,6 @@ class NeuralNet(Model):
 
   def _gen_mlp_input(self, input_):
     return input_.causal_matrix(self.memory_depth)
-
-  def _create_default_mlp(self, hidden_dims=None):
-    from tframe.layers import Input, Linear, Activation
-    hidden_dims = [self.D] * 2 if hidden_dims is None else hidden_dims
-    activation = lambda: Activation('relu')
-    learning_rate = 0.001
-
-    # Add layers
-    self.nn.add(Input([self.D]))
-
-    for dim in hidden_dims:
-      self.nn.add(Linear(output_dim=dim))
-      self.nn.add(activation())
-
-    self.nn.add(Linear(output_dim=1))
-
-    # Build model
-    self.nn.build(
-      loss='euclid', optimizer=tf.train.AdamOptimizer(learning_rate),
-      metric='delta', metric_name='Val-Delta')
 
   # endregion : Private Methods
 

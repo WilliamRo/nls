@@ -18,39 +18,41 @@ import model_lib
 #  Global configuration
 # =============================================================================
 wiener_train = True
-FLAGS.train = True
+FLAGS.train = False
 FLAGS.overwrite = True
 bshow = False
-nn_mark = 'mlp_4x20_reg=0.01'
+nn_mark = 'vn_00'
 
 # =============================================================================
 #  Define system to be identify
 # =============================================================================
 # Define the black box using Volterra model
-degree = 3
+degree = 5
 memory_depth = 3
 system = Volterra(degree, memory_depth)
 
 # region : Set kernels
 system.set_kernel((0,), 1.0)
-system.set_kernel((1,), 0.4)
-system.set_kernel((2,), 0.3)
-system.set_kernel((0, 0), 0.1)
+system.set_kernel((1,), 0.2)
+system.set_kernel((2,), 0.1)
+system.set_kernel((0, 0), 0.0)
 system.set_kernel((1, 0), 0.0)
-system.set_kernel((1, 1), 1.0)
-system.set_kernel((2, 0), 0.1)
+system.set_kernel((1, 1), 0.0)
+system.set_kernel((2, 0), 0.0)
 system.set_kernel((2, 1), 0.0)
-system.set_kernel((2, 2), 1.3)
+system.set_kernel((2, 2), 0.0)
 system.set_kernel((0, 0, 0), 0.0)
 system.set_kernel((1, 0, 0), 0.0)
-system.set_kernel((1, 1, 0), 0.1)
+system.set_kernel((1, 1, 0), 0.0)
 system.set_kernel((1, 1, 1), 0.0)
 system.set_kernel((2, 0, 0), 0.0)
-system.set_kernel((2, 1, 0), 0.3)
+system.set_kernel((2, 1, 0), 0.0)
 system.set_kernel((2, 1, 1), 0.0)
 system.set_kernel((2, 2, 0), 0.0)
-system.set_kernel((2, 2, 1), 0.2)
+system.set_kernel((2, 2, 1), 0.0)
 system.set_kernel((2, 2, 2), 0.0)
+system.set_kernel((0, 0, 0, 0), 0.0)
+system.set_kernel((0, 0, 0, 0, 0), 0.0)
 # endregion : Set kernels
 
 # =============================================================================
@@ -58,7 +60,7 @@ system.set_kernel((2, 2, 2), 0.0)
 # =============================================================================
 
 # region : Generate data sets
-num = 2
+num = 5
 A = 1
 N = 100000
 noises = []
@@ -89,30 +91,45 @@ wiener = Wiener(degree, memory_depth)
 # wiener.cross_correlation(noises[0], noise_responses[0], A)
 wiener.identify(train_set, val_set)
 
-# MLP
-mlp = model_lib.mlp_00(memory_depth, nn_mark)
+# VN
+degree = 1
+memory_depth = 3
+vn = model_lib.vn_00(memory_depth, nn_mark, degree=None)
 
 if FLAGS.train:
-  mlp.identify(train_set, val_set, batch_size=50,
-               print_cycle=100, epoch=1, snapshot_cycle=2000,
-               snapshot_function=mlp.gen_snapshot_function(
-                 signal, system_output))
+  vn.identify(
+    train_set, val_set, probe=None,
+    batch_size=50, print_cycle=100, epoch=1, snapshot_cycle=2000,
+    snapshot_function=vn.gen_snapshot_function(signal, system_output))
 
 # =============================================================================
 #  Verification
 # =============================================================================
+print('>> System linear coefs = {}'.format(system.kernels.linear_coefs))
+print('>> VN linear coefs = {}'.format(vn.nn.linear_coefs))
 print('>> ||system_output|| = {:.4f}'.format(system_output.norm))
+
+# System_2
+# system_2 = Volterra(1, 3)
+# system_2.set_kernel((0,), 0.01909399)
+# system_2.set_kernel((1,), 0.8786813)
+# system_2.set_kernel((2,), 0.74593288)
+# system_2_output = system_2(signal)
+# system_2_delta = system_output - system_2_output
+# system_2_ratio = system_2_delta.norm / system_output.norm * 100
+# print('>> System2 err ratio = {:.2f} %'.format(system_2_ratio))
+
 # Wiener
 wiener_output = wiener(signal)
 wiener_delta = system_output - wiener_output
 wiener_ratio = wiener_delta.norm / system_output.norm * 100
 print('>> Wiener err ratio = {:.2f} %'.format(wiener_ratio))
 
-# MLP
-mlp_output = mlp(signal)
+# VN
+mlp_output = vn(signal)
 mlp_delta = system_output - mlp_output
 mlp_ratio = mlp_delta.norm / system_output.norm * 100
-print('>> MLP err ratio = {:.2f} %'.format(mlp_ratio))
+print('>> VN err ratio = {:.2f} %'.format(mlp_ratio))
 
 # Plot
 if bshow:
@@ -132,7 +149,7 @@ if bshow:
   prefix = 'Wiener Output, $||\Delta|| = {:.4f}$'.format(wiener_delta.norm)
   fig.add(Subplot.PowerSpectrum(wiener_output, prefix=prefix,
                                 Delta=wiener_delta))
-  prefix = 'MLP Output, $||\Delta|| = {:.4f}$'.format(mlp_delta.norm)
+  prefix = 'VN Output, $||\Delta|| = {:.4f}$'.format(mlp_delta.norm)
   fig.add(Subplot.PowerSpectrum(mlp_output, prefix=prefix,
                                 Delta=mlp_delta))
   fig.plot(ylim=(-75, 5))
