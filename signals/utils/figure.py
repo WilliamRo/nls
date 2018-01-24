@@ -150,8 +150,8 @@ class Subplot(object):
     densities = []
     for y in ys:
       assert isinstance(y, signals.Signal)
-      densities.append(20 * np.log10(y.amplitude_spectrum) if self.db
-                       else y.amplitude_spectrum)
+      densities.append(20 * np.log10(y.amplitude_spectrum + 1e-12)
+                       if self.db else y.amplitude_spectrum)
     # Subplot._plot(self.signl.freq_axis, density)
     ylabel = 'Spectrum Amplitude'
     if self.db: ylabel += ' (dB)'
@@ -164,8 +164,8 @@ class Subplot(object):
     densities = []
     for y in ys:
       assert isinstance(y, signals.Signal)
-      densities.append(10 * np.log10(y.power_spectrum_density) if self.db
-                       else y.power_spectrum_density)
+      densities.append(10 * np.log10(y.power_spectrum_density + 1e-12)
+                       if self.db else y.power_spectrum_density)
     # Subplot._plot(self.signl.freq_axis, density)
     ylabel = 'Power'
     if self.db: ylabel += ' (dB)'
