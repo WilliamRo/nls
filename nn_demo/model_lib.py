@@ -48,11 +48,12 @@ def mlp_00(memory_depth, mark):
 
 # region : Volterra Networks
 
-def vn_00(memory_depth, mark, degree=None):
+def vn_00(memory_depth, mark, degree=None, homo_str=0.0):
   D = memory_depth
-  hidden_dims = [[10, 10]]
-  # hidden_dims = []
-  degree = len(hidden_dims) + 1
+  hidden_dims = [[10, 10, 10]]
+
+  if degree is None: degree = len(hidden_dims) + 1
+  elif degree < 1: raise ValueError('!! Degree must be greater than 1')
 
   activation = lambda: Activation('relu')
   learning_rate = 0.001
@@ -61,16 +62,16 @@ def vn_00(memory_depth, mark, degree=None):
   # Initiate model
   model = NeuralNet(D, mark, degree=degree)
 
-  for i in range(len(hidden_dims)):
-    d = i + 2
-    dims = hidden_dims[i]
+  for order in range(2, degree + 1):
+    dims = hidden_dims[order - 2]
     for dim in dims:
-      model.nn.T[d].add(Linear(dim, weight_regularizer='l2', strength=reg))
-      model.nn.T[d].add(activation())
-    model.nn.T[d].add(Linear(1, weight_regularizer='l2', strength=reg))
+      model.nn.T[order].add(Linear(dim, weight_regularizer='l2', strength=reg))
+      model.nn.T[order].add(activation())
+    model.nn.T[order].add(Linear(1, weight_regularizer='l2', strength=reg))
 
   # Build model
   model.nn.build(loss='euclid', metric='ratio', metric_name='Err%',
+                 homo_strength=homo_str,
                  optimizer=tf.train.AdamOptimizer(learning_rate))
   return model
 

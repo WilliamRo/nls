@@ -18,10 +18,9 @@ import model_lib
 #  Global configuration
 # =============================================================================
 wiener_train = True
-FLAGS.train = False
+FLAGS.train = True
 FLAGS.overwrite = True
 bshow = False
-nn_mark = 'vn_00'
 
 # =============================================================================
 #  Define system to be identify
@@ -30,27 +29,28 @@ nn_mark = 'vn_00'
 degree = 5
 memory_depth = 3
 system = Volterra(degree, memory_depth)
+system.lock_orders([1, 2])
 
 # region : Set kernels
 system.set_kernel((0,), 1.0)
-system.set_kernel((1,), 0.2)
-system.set_kernel((2,), 0.1)
-system.set_kernel((0, 0), 0.0)
-system.set_kernel((1, 0), 0.0)
-system.set_kernel((1, 1), 0.0)
-system.set_kernel((2, 0), 0.0)
-system.set_kernel((2, 1), 0.0)
-system.set_kernel((2, 2), 0.0)
-system.set_kernel((0, 0, 0), 0.0)
-system.set_kernel((1, 0, 0), 0.0)
-system.set_kernel((1, 1, 0), 0.0)
-system.set_kernel((1, 1, 1), 0.0)
-system.set_kernel((2, 0, 0), 0.0)
-system.set_kernel((2, 1, 0), 0.0)
-system.set_kernel((2, 1, 1), 0.0)
-system.set_kernel((2, 2, 0), 0.0)
-system.set_kernel((2, 2, 1), 0.0)
-system.set_kernel((2, 2, 2), 0.0)
+system.set_kernel((1,), 2.4)
+system.set_kernel((2,), 0.5)
+system.set_kernel((0, 0), 0.1)
+system.set_kernel((1, 0), 2.0)
+system.set_kernel((1, 1), 1.2)
+system.set_kernel((2, 0), 0.4)
+system.set_kernel((2, 1), 3.1)
+system.set_kernel((2, 2), 1.7)
+system.set_kernel((0, 0, 0), 0.2)
+system.set_kernel((1, 0, 0), 1.2)
+system.set_kernel((1, 1, 0), 0.5)
+system.set_kernel((1, 1, 1), 0.2)
+system.set_kernel((2, 0, 0), 2.3)
+system.set_kernel((2, 1, 0), 0.3)
+system.set_kernel((2, 1, 1), 2.0)
+system.set_kernel((2, 2, 0), 0.1)
+system.set_kernel((2, 2, 1), 1.2)
+system.set_kernel((2, 2, 2), 3.0)
 system.set_kernel((0, 0, 0, 0), 0.0)
 system.set_kernel((0, 0, 0, 0, 0), 0.0)
 # endregion : Set kernels
@@ -85,22 +85,25 @@ system_output = system(signal)
 val_set = DataSet(signal, system_output, memory_depth=3)
 
 # Wiener
-degree = 3
+degree = 2
 memory_depth = 3
 wiener = Wiener(degree, memory_depth)
 # wiener.cross_correlation(noises[0], noise_responses[0], A)
 wiener.identify(train_set, val_set)
 
 # VN
-degree = 1
+degree = 2
 memory_depth = 3
-vn = model_lib.vn_00(memory_depth, nn_mark, degree=None)
 
-if FLAGS.train:
-  vn.identify(
-    train_set, val_set, probe=None,
-    batch_size=50, print_cycle=100, epoch=1, snapshot_cycle=2000,
-    snapshot_function=vn.gen_snapshot_function(signal, system_output))
+homo_strs = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]
+for homo_str in homo_strs:
+  vn = model_lib.vn_00(memory_depth, 'vn_{}'.format(homo_str),
+                       degree=degree, homo_str=homo_str)
+  if FLAGS.train:
+    vn.identify(
+      train_set, val_set, probe=None,
+      batch_size=50, print_cycle=100, epoch=2, snapshot_cycle=2000,
+      snapshot_function=vn.gen_snapshot_function(signal, system_output))
 
 # =============================================================================
 #  Verification
