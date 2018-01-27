@@ -22,11 +22,11 @@ from signals.utils import Figure, Subplot, DataSet
 TRAIN = True
 OVERWRITE = True
 WIENER_ON = True
-PLOT = True
+PLOT = False
 # System parameters
 SYS_DEGREE = 4
 SYS_MEM_DEPTH = 5
-SYS_LOCK_ORDERS = (3,)
+SYS_LOCK_ORDERS = (2,)
 WEAK_NONLINEARITY = False
 # Wiener parameters
 WN_DEGREE = SYS_DEGREE if SYS_LOCK_ORDERS is None else max(SYS_LOCK_ORDERS)
@@ -39,10 +39,10 @@ TEST_FREQS = [3160, 7080]
 HIDDEN_DIMS = [[40] * 4, [200] * 4]
 NN_MEM_DEPTH = 5
 NN_DEGREE = 3
-NN_ORDERS = (3,)
-NN_HOMO_STRS = np.arange(10) * 0.05
+NN_ORDERS = (2,)
+NN_HOMO_STRS = np.arange(1) * 0.05
 # Train parameters
-EPOCH = 5
+EPOCH = 1
 
 
 def define_system():
@@ -152,13 +152,13 @@ def init_vn(mark, homo_str):
   # Initiate model
   model = NeuralNet(D, mark, degree=degree, orders=NN_ORDERS)
 
-  for order in range(2, degree + 1):
+  for order in range(3, degree + 1):
     if order not in NN_ORDERS: continue
-    dims = hidden_dims[order - 2]
+    dims = hidden_dims[order - 3]
     for dim in dims:
-      model.nn.T[order].add(Linear(dim, weight_regularizer='l2', strength=reg))
-      model.nn.T[order].add(activation())
-    model.nn.T[order].add(Linear(1, weight_regularizer='l2', strength=reg))
+      model.nn.add(order, Linear(dim, weight_regularizer='l2', strength=reg))
+      model.nn.add(order, activation())
+    model.nn.add(order, Linear(1, weight_regularizer='l2', strength=reg))
 
   # Build model
   model.nn.build(loss='euclid', metric='ratio', metric_name='Err %',
