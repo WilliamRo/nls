@@ -31,7 +31,7 @@ class NeuralNet(Model):
     self.degree = degree
     # TODO: compromise
     if degree is None: self.nn = Predictor(mark=mark)
-    else: self.nn = VolterraNet(degree, memory_depth, mark)
+    else: self.nn = VolterraNet(degree, memory_depth, mark, **kwargs)
 
   # region : Public Methods
 

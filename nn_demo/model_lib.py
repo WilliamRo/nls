@@ -50,7 +50,7 @@ def mlp_00(memory_depth, mark):
 
 def vn_00(memory_depth, mark, degree=None, homo_str=0.0):
   D = memory_depth
-  hidden_dims = [[10, 10, 10]]
+  hidden_dims = [[40] * 4, [40] * 5]
 
   if degree is None: degree = len(hidden_dims) + 1
   elif degree < 1: raise ValueError('!! Degree must be greater than 1')
@@ -58,6 +58,7 @@ def vn_00(memory_depth, mark, degree=None, homo_str=0.0):
   activation = lambda: Activation('relu')
   learning_rate = 0.001
   reg = 0.00
+  reg = None
 
   # Initiate model
   model = NeuralNet(D, mark, degree=degree)

@@ -6,7 +6,7 @@
 *pycache*
 
 # Ignore records and data folders
-records/
+*records*/
 data/
 
 # Ignore vim files

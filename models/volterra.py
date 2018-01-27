@@ -48,8 +48,7 @@ class Volterra(Model):
     if not isinstance(input_, Signal):
       raise TypeError('!! Input must be an instance of Signal')
     if self.order_lock is not None: orders = self.order_lock
-    if orders is not None:
-      orders = self._check_orders(orders)
+    if orders is not None: orders = self._check_orders(orders)
 
     # Calculate
     y = np.zeros_like(input_)
