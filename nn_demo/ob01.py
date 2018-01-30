@@ -26,7 +26,7 @@ PLOT = False
 # System parameters
 SYS_DEGREE = 4
 SYS_MEM_DEPTH = 5
-SYS_LOCK_ORDERS = (2,)
+SYS_LOCK_ORDERS = (1, 2, 3)
 WEAK_NONLINEARITY = False
 # Wiener parameters
 WN_DEGREE = SYS_DEGREE if SYS_LOCK_ORDERS is None else max(SYS_LOCK_ORDERS)
@@ -39,8 +39,10 @@ TEST_FREQS = [3160, 7080]
 HIDDEN_DIMS = [[40] * 4, [200] * 4]
 NN_MEM_DEPTH = 5
 NN_DEGREE = 3
-NN_ORDERS = (2,)
+NN_ORDERS = (1, 2, 3)
 NN_HOMO_STRS = np.arange(1) * 0.05
+NN_MAX_VOL_ORD = 3
+POSTFIX = '{}'.format(NN_ORDERS)
 # Train parameters
 EPOCH = 1
 
@@ -152,9 +154,9 @@ def init_vn(mark, homo_str):
   # Initiate model
   model = NeuralNet(D, mark, degree=degree, orders=NN_ORDERS)
 
-  for order in range(3, degree + 1):
+  for order in range(NN_MAX_VOL_ORD + 1, degree + 1):
     if order not in NN_ORDERS: continue
-    dims = hidden_dims[order - 3]
+    dims = hidden_dims[order - NN_MAX_VOL_ORD - 1]
     for dim in dims:
       model.nn.add(order, Linear(dim, weight_regularizer='l2', strength=reg))
       model.nn.add(order, activation())
@@ -246,7 +248,7 @@ def main(_):
   vns = collections.OrderedDict()
   for homo_str in homo_strs:
     console.show_status('Volterra Net homo-strength = {:.2f}'.format(homo_str))
-    vn = init_vn('vn_{:.2f}'.format(homo_str), homo_str=homo_str)
+    vn = init_vn('vn_{:.2f}{}'.format(homo_str, POSTFIX), homo_str=homo_str)
     vns[homo_str] = vn
     if FLAGS.train:
       vn.identify(training_set, validation_set,
