@@ -48,12 +48,12 @@ class NeuralNet(Model):
 
   def identify(self, training_set, val_set=None, probe=None,
                batch_size=64, print_cycle=100, snapshot_cycle=1000,
-               snapshot_function=None, epoch=1):
+               snapshot_function=None, epoch=1, **kwargs):
     # Train
     self.nn.train(batch_size=batch_size, training_set=training_set,
                   validation_set=val_set, print_cycle=print_cycle,
                   snapshot_cycle=snapshot_cycle, epoch=epoch, probe=None,
-                  snapshot_function=snapshot_function)
+                  snapshot_function=snapshot_function, **kwargs)
 
   def gen_snapshot_function(self, input_, response):
     from signals.utils import Figure, Subplot

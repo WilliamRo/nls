@@ -9,36 +9,44 @@ from models.neural_net import NeuralNet
 from signals.utils.dataset import load_wiener_hammerstein, DataSet
 from signals.utils.figure import Figure, Subplot
 
+import model_lib
+
 # =============================================================================
 # Global configuration
-WH_PATH = 'data/wiener_hammerstein/whb.tfd'
+WH_PATH = '../data/wiener_hammerstein/whb.tfd'
 VAL_SIZE = 20000
-MODEL_MARK = 'wh_00'
+MEMORY_DEPTH = 50
+NN_EPOCH = 20
+MODEL_MARK = 'mlp_D{}_4x2D'.format(MEMORY_DEPTH)
+NN_TOL_EPC = 10
+# NN_DEGREE = 4
+# NN_LEARNING_RATE = 0.0001
+# NN_MAX_VOL_ORD = 99
 
-NN_MEMORY_DEPTH = 5
-NN_DEGREE = 3
-NN_LEARNING_RATE = 0.001
-NN_EPOCH = 3
+FLAGS.train = True
+FLAGS.overwrite = True
+FLAGS.save_best = True
 
-FLAGS.train = False
+# Turn off overwrite while in save best mode
+FLAGS.overwrite = FLAGS.overwrite and not FLAGS.save_best
+
+EVALUATION = False
 PLOT = False
-EVALUATION = True
+
+model = model_lib.mlp_00(MEMORY_DEPTH, MODEL_MARK)
 # =============================================================================
 
 # Load data set
 train_set, val_set, test_set = load_wiener_hammerstein(
-  WH_PATH, depth=NN_MEMORY_DEPTH)
+  WH_PATH, depth=MEMORY_DEPTH)
 assert isinstance(train_set, DataSet)
 assert isinstance(val_set, DataSet)
 assert isinstance(test_set, DataSet)
 
 # Define model and identify
-model = NeuralNet(NN_MEMORY_DEPTH, MODEL_MARK, NN_DEGREE)
-model.nn.build(metric='ratio', metric_name='Err %',
-               optimizer=tf.train.AdamOptimizer(NN_LEARNING_RATE))
-if FLAGS.train:
-  model.identify(train_set, val_set,
-                 batch_size=50, print_cycle=100, epoch=NN_EPOCH)
+if FLAGS.train: model.identify(
+  train_set, val_set, batch_size=10, print_cycle=100, epoch=NN_EPOCH,
+  tol_epoch=NN_TOL_EPC)
 
 # Evaluation
 def evaluate(u, y):
