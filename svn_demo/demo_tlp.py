@@ -1,57 +1,47 @@
 import numpy as np
-import tensorflow as tf
 
 from tframe import FLAGS
 from tframe import console
 
-from models.neural_net import NeuralNet
-
-from signals.utils.dataset import load_wiener_hammerstein, DataSet
+from signals.utils.dataset import DataSet
 from signals.utils.figure import Figure, Subplot
 
-import model_lib
+import svn_models
+import data_utils
 
 # =============================================================================
 # Global configuration
-WH_PATH = '../data/wiener_hammerstein/whb.tfd'
-VAL_SIZE = 20000
-MEMORY_DEPTH = 80
-NN_EPOCH = 30
-MODEL_MARK = 'mlp_D{}_4x2D'.format(MEMORY_DEPTH)
-NN_TOL_EPC = 5
-# NN_DEGREE = 4
-# NN_LEARNING_RATE = 0.0001
-# NN_MAX_VOL_ORD = 99
+MEMORY_DEPTH = 26
+NN_HID_DIM = 8  # 8 by default
+NN_EPOCH = 1000
+MODEL_MARK = 'tlp'
 
 FLAGS.train = False
-FLAGS.overwrite = True
+FLAGS.overwrite = False
 FLAGS.save_best = True
 
 # Turn off overwrite while in save best mode
 FLAGS.overwrite = FLAGS.overwrite and not FLAGS.save_best
 
-EVALUATION = True
-PLOT = True
+EVALUATION = not FLAGS.train
+PLOT = EVALUATION
 
-model = model_lib.mlp_00(MEMORY_DEPTH, MODEL_MARK)
+model = svn_models.tlp(MEMORY_DEPTH, NN_HID_DIM, MODEL_MARK)
 # =============================================================================
 
 # Load data set
-train_set, val_set, test_set = load_wiener_hammerstein(
-  WH_PATH, depth=MEMORY_DEPTH)
+train_set, val_set = data_utils.load_svn1997(MEMORY_DEPTH)
 assert isinstance(train_set, DataSet)
 assert isinstance(val_set, DataSet)
-assert isinstance(test_set, DataSet)
 
 # Define model and identify
 if FLAGS.train: model.identify(
-  train_set, val_set, batch_size=10, print_cycle=100, epoch=NN_EPOCH,
-  tol_epoch=NN_TOL_EPC)
+  train_set, val_set, batch_size=1000, print_cycle=5, epoch=NN_EPOCH)
 
 # Evaluation
 def evaluate(u, y):
-  system_output = y[1000:]
-  model_output = model(u)[1000:]
+  system_output = y[5:]
+  model_output = model(u)[5:]
   delta = system_output - model_output
   rms_truth = float(np.sqrt(np.mean(system_output * system_output)))
 
@@ -72,11 +62,9 @@ def evaluate(u, y):
   return system_output, model_output, delta
 
 if EVALUATION:
-  console.show_status('Evaluating estimation data ...')
-  evaluate(train_set.signls[0], train_set.responses[0])
-  console.show_status('Evaluating test data ...')
+  console.show_status('Evaluating validation data ...')
   system_output, model_output, delta = evaluate(
-    test_set.signls[0], test_set.responses[0])
+    val_set.signls[0], val_set.responses[0])
 
   if PLOT:
     fig = Figure('Simulation Error')
@@ -88,6 +76,5 @@ if EVALUATION:
     fig.add(Subplot.PowerSpectrum(model_output, prefix=prefix, Delta=delta))
     # Plot
     fig.plot(ylim=True)
-
 
 

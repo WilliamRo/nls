@@ -35,6 +35,12 @@ class NeuralNet(Model):
 
   # region : Public Methods
 
+  def default_build(self, learning_rate=0.001, optimizer=None):
+    if optimizer is None:
+      optimizer = tf.train.AdamOptimizer(learning_rate)
+    self.nn.build(loss='euclid', metric='ratio', metric_name='Err %',
+                  optimizer=optimizer)
+
   def inference(self, input_, **kwargs):
     if not self.nn.built:
       raise AssertionError('!! Model has not been built yet')
