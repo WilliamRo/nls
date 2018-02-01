@@ -1,3 +1,6 @@
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# [P]erceptron [E]xpansion [T]echnique demo
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 import numpy as np
 
 from tframe import FLAGS
@@ -13,8 +16,8 @@ import data_utils
 # Global configuration
 MEMORY_DEPTH = 26
 NN_HID_DIM = 8  # 8 by default
-NN_EPOCH = 50
-MODEL_MARK = 'tlp'
+NN_EPOCH = 1000
+MODEL_MARK = 'pet'
 
 FLAGS.train = True
 FLAGS.overwrite = True

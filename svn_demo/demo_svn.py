@@ -14,15 +14,15 @@ import data_utils
 MEMORY_DEPTH = 26
 NN_HID_DIM = 5  # 5 by default
 NN_ORDER = 7
-NN_EPOCH = 1000
+NN_EPOCH = 500
 MODEL_MARK = 'svn'
 
-FLAGS.train = False
+FLAGS.train = True
 FLAGS.overwrite = True
-FLAGS.save_best = True
+FLAGS.save_best = False
 
 # Turn off overwrite while in save best mode
-FLAGS.overwrite = FLAGS.overwrite and not FLAGS.save_best
+FLAGS.overwrite = FLAGS.overwrite and not FLAGS.save_best and FLAGS.train
 
 EVALUATION = not FLAGS.train
 PLOT = EVALUATION
@@ -38,6 +38,8 @@ assert isinstance(val_set, DataSet)
 # Define model and identify
 if FLAGS.train: model.identify(
   train_set, val_set, batch_size=1000, print_cycle=5, epoch=NN_EPOCH)
+
+# print(model.nn._session.run(model.nn.children[-2].children[0].coefs))
 
 # Evaluation
 def evaluate(u, y):
