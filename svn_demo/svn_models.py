@@ -1,10 +1,12 @@
 import tensorflow as tf
 
 from tframe import Predictor
+from tframe import pedia
 
 from tframe.layers import Activation
 from tframe.layers import Linear
 from tframe.layers import Input
+from tframe.layers.homogeneous import Homogeneous
 from tframe.layers.parametric_activation import Polynomial
 
 from models.neural_net import NeuralNet
@@ -62,10 +64,7 @@ def svn(memory_depth, order, hidden_dim, mark='svn'):
 
 # region : PET
 
-def pet(memory, hidden_dim, mark='pet'):
-  # Hyper-parameters
-  learning_rate = 0.001
-
+def pet(memory, hidden_dim, order, learning_rate, mark='pet'):
   # Initiate a predictor
   model = NeuralNet(memory_depth=memory, mark=mark)
   nn = model.nn
@@ -73,8 +72,9 @@ def pet(memory, hidden_dim, mark='pet'):
 
   # Add layers
   nn.add(Input([memory]))
-  nn.add(Linear(output_dim=hidden_dim))
-  # TODO
+  nn.add(Linear(output_dim=hidden_dim, use_bias=False))
+  nn.add(inter_type=pedia.sum)
+  for i in range(1, order + 1): nn.add_to_last_net(Homogeneous(order=i))
 
   # Build model
   model.default_build(learning_rate=learning_rate)

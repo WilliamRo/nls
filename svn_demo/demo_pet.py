@@ -15,12 +15,22 @@ import data_utils
 # =============================================================================
 # Global configuration
 MEMORY_DEPTH = 26
-NN_HID_DIM = 8  # 8 by default
-NN_EPOCH = 1000
-MODEL_MARK = 'pet'
+NN_HID_DIM = 6  # 6 by default
+NN_ORDER = 4
+NN_EPOCH = 100
+MODEL_MARK = 'pet_h{}_o{}'.format(NN_HID_DIM, NN_ORDER)
+FLAGS.epoch_tol = 20
+
+NN_LEARN_RATE = 0.001
+# NN_LEARN_RATE = 0.0001
 
 FLAGS.train = True
+# FLAGS.train = False
+
 FLAGS.overwrite = True
+# FLAGS.overwrite = False
+
+FLAGS.save_best = False
 FLAGS.save_best = False
 
 # Turn off overwrite while in save best mode
@@ -29,7 +39,9 @@ FLAGS.overwrite = FLAGS.overwrite and not FLAGS.save_best
 EVALUATION = not FLAGS.train
 PLOT = EVALUATION
 
-model = svn_models.tlp(MEMORY_DEPTH, NN_HID_DIM, MODEL_MARK)
+# Initiate model
+model = svn_models.pet(MEMORY_DEPTH, NN_HID_DIM, NN_ORDER,
+                       NN_LEARN_RATE, MODEL_MARK)
 # =============================================================================
 
 # Load data set
