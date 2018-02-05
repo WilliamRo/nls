@@ -117,13 +117,13 @@ class Signal(np.ndarray):
 
   # region : Public Methods
 
-  def causal_matrix(self, memory_depth):
+  def causal_matrix(self, memory_depth, cut=False):
     assert isinstance(self, np.ndarray)
     N, D = self.size, memory_depth
     x = np.append(np.zeros(shape=(D - 1,)), self)
     matrix = np.zeros(shape=(N, D))
     for i in range(N): matrix[i] = x[i:i+D]
-    return matrix
+    return matrix[D - 1:] if cut else matrix
 
   def auto_correlation(self, lags, keep_dim=False):
     if isinstance(lags, int):

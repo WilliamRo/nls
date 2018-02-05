@@ -14,7 +14,7 @@ class DataSet(TFData):
   """A dataset class for signals based on TFData"""
 
   def __init__(self, signls, responses=None, name='unnamed', memory_depth=None,
-               intensity=None):
+               intensity=None, cut=False):
     # Sanity check
     if not isinstance(signls, (tuple, list)): signls = [signls]
     fs = signls[0].fs
@@ -40,6 +40,7 @@ class DataSet(TFData):
     self.intensity = intensity
     self.name = name
     self.fs = fs
+    self.cut = cut
 
     # Call parent's constructor
     if memory_depth is not None: self.init_tfdata(memory_depth)
@@ -47,16 +48,19 @@ class DataSet(TFData):
   # region : Public Methods
 
   def init_tfdata(self, memory_depth):
-    features = self.signls[0].causal_matrix(memory_depth)
+    features = self.signls[0].causal_matrix(memory_depth, cut=self.cut)
     for i in range(1, len(self.signls)):
       features = np.vstack(
-        (features, self.signls[i].causal_matrix(memory_depth)))
+        (features, self.signls[i].causal_matrix(memory_depth, cut=self.cut)))
     targets = None
     if self.responses is not None:
-      targets = self.responses[0].reshape(self.responses[0].size, 1)
+      start_at = memory_depth - 1 if self.cut else 0
+      targets = self.responses[0].reshape(
+        self.responses[0].size, 1)[start_at:]
       for i in range(1, len(self.responses)):
         targets = np.vstack(
-          (targets, self.responses[i].reshape(self.responses[i].size, 1)))
+          (targets, self.responses[i].reshape(
+            self.responses[i].size, 1)[start_at:]))
 
     TFData.__init__(self, features, targets=targets, name=self.name)
 
@@ -93,7 +97,7 @@ def load_wiener_hammerstein(
   training_size = L - validation_size - test_size
   train_slice = slice(0, training_size)
   training_set = DataSet(u[train_slice], y[train_slice], memory_depth=depth,
-                         name='training set')
+                         name='training set', cut=True)
 
   val_slice = slice(training_size, training_size + validation_size)
   validation_set = DataSet(u[val_slice], y[val_slice], memory_depth=depth,
