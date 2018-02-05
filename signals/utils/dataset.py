@@ -13,7 +13,7 @@ import signals
 class DataSet(TFData):
   """A dataset class for signals based on TFData"""
 
-  def __init__(self, signls, responses=None, name=None, memory_depth=None,
+  def __init__(self, signls, responses=None, name='unnamed', memory_depth=None,
                intensity=None):
     # Sanity check
     if not isinstance(signls, (tuple, list)): signls = [signls]
@@ -92,13 +92,16 @@ def load_wiener_hammerstein(
   # Separate data
   training_size = L - validation_size - test_size
   train_slice = slice(0, training_size)
-  training_set = DataSet(u[train_slice], y[train_slice], memory_depth=depth)
+  training_set = DataSet(u[train_slice], y[train_slice], memory_depth=depth,
+                         name='training set')
 
   val_slice = slice(training_size, training_size + validation_size)
-  validation_set = DataSet(u[val_slice], y[val_slice], memory_depth=depth)
+  validation_set = DataSet(u[val_slice], y[val_slice], memory_depth=depth,
+                           name='validation set')
 
   test_slice = slice(L-test_size, L)
-  test_set = DataSet(u[test_slice], y[test_slice], memory_depth=depth)
+  test_set = DataSet(u[test_slice], y[test_slice], memory_depth=depth,
+                     name='test set')
 
   # Show status
   console.show_status('Data set loaded')

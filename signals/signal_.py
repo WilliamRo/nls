@@ -7,7 +7,8 @@ import signals.utils.figure as _figure
 
 
 class Signal(np.ndarray):
-  """Base class of all signals"""
+  """Base class of all signals.
+    IF DECIDE TO REFACTOR, DO NOT INHERIT FROM NP.NDARRAY !!"""
 
   def __new__(cls, input_array, fs=None, **kwargs):
     if not isinstance(input_array, np.ndarray):
@@ -34,6 +35,10 @@ class Signal(np.ndarray):
   @property
   def norm(self):
     return np.linalg.norm(self)
+
+  @property
+  def rms(self):
+    return float(np.sqrt(np.mean(np.square(self))))
 
   # endregion : Basic Properties
 

@@ -12,6 +12,8 @@ from tframe.models.sl.vn import VolterraNet
 
 from models import Model
 from signals import Signal
+from signals.utils.dataset import DataSet
+from signals.utils.figure import Figure, Subplot
 from signals.generator import gaussian_white_noise
 
 
@@ -60,6 +62,46 @@ class NeuralNet(Model):
                   validation_set=val_set, print_cycle=print_cycle,
                   snapshot_cycle=snapshot_cycle, epoch=epoch, probe=None,
                   snapshot_function=snapshot_function, **kwargs)
+
+  def evaluate(self, dataset, start_at=0, plot=False):
+    # Check input
+    if not isinstance(dataset, DataSet):
+      raise TypeError('!! Input data set must be an instance of DataSet')
+    if dataset.responses is None:
+      raise ValueError('!! input data set should have responses')
+    u, y = dataset.signls[0], dataset.responses[0]
+
+    # Show status
+    console.show_status('Evaluating {}'.format(dataset.name))
+
+    # Evaluate
+    system_output = y[start_at:]
+    model_output = self(u)[start_at:]
+    err = system_output - model_output
+    ratio = lambda val: 100 * val / system_output.rms
+
+    # The mean value of the simulation error in time domain
+    val = err.average
+    console.supplement('E[err] = {:.4f} ({:.3f}%)'.format(val, ratio(val)))
+    # The standard deviation of the error in time domain
+    val = float(np.std(err))
+    console.supplement('STD[err] = {:.4f} ({:.3f}%)'.format(val, ratio(val)))
+    # The root mean square value of the error in time domain
+    val = err.rms
+    console.supplement('RMS[err] = {:.4f} ({:.3f}%)'.format(val, ratio(val)))
+
+    # Plot
+    if not plot: return
+    fig = Figure('Simulation Error')
+    # Add ground truth
+    prefix = 'System Output, $||y|| = {:.4f}$'.format(system_output.norm)
+    fig.add(Subplot.PowerSpectrum(system_output, prefix=prefix))
+    # Add model output
+    prefix = 'Model Output, $||\Delta|| = {:.4f}$'.format(err.norm)
+    fig.add(Subplot.PowerSpectrum(model_output, prefix=prefix, Error=err))
+    # Plot
+    fig.plot(ylim=True)
+
 
   def gen_snapshot_function(self, input_, response):
     from signals.utils import Figure, Subplot

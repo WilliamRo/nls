@@ -16,12 +16,7 @@ from models.neural_net import NeuralNet
 
 # region : MLP
 
-def mlp_00(memory_depth, mark):
-  # Hyper-parameters
-  D = memory_depth
-  hidden_dims = [2 * D] * 4
-  learning_rate = 0.001
-
+def mlp_00(memory_depth, mark, hidden_dims, learning_rate=0.001):
   # Initiate a predictor
   model = NeuralNet(memory_depth, mark=mark)
   nn = model.nn
@@ -29,11 +24,11 @@ def mlp_00(memory_depth, mark):
 
   # Add layers
   nn.add(Input([memory_depth]))
-  _add_fc_relu_layers(nn, hidden_dims)
+  _add_fc_relu_layers(nn, hidden_dims, 'lrelu')
   nn.add(Linear(output_dim=1))
 
   # Build model
-  nn.build(loss='euclid', metric='ratio', metric_name='Err %',
+  nn.build(loss='euclid', metric='rms_ratio', metric_name='RMS(err)%',
            optimizer=tf.train.AdamOptimizer(learning_rate))
 
   # Return model
@@ -43,12 +38,24 @@ def mlp_00(memory_depth, mark):
 
 # region : Layers
 
-def _add_fc_relu_layers(nn, hidden_dims):
+def _add_fc_relu_layers(nn, hidden_dims, activation='lrelu'):
   assert isinstance(nn, Predictor)
   assert isinstance(hidden_dims, (tuple, list))
 
   for dim in hidden_dims:
     nn.add(Linear(output_dim=dim))
-    nn.add(Activation.ReLU())
+    nn.add(Activation(activation))
 
 # endregion : Utilities
+
+
+"""LOGS
+[1] mlp: 0.004%, 0.487%, 0.487%
+    memory = 80
+    learning rate = 0.001 on Adam -> 0.00001
+    loss = euclid
+    hidden_dims = [160] * 4
+    activation = lrelu
+
+"""
+

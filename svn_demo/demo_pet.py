@@ -31,7 +31,7 @@ FLAGS.overwrite = True
 # FLAGS.overwrite = False
 
 FLAGS.save_best = False
-FLAGS.save_best = False
+# FLAGS.save_best = True
 
 # Turn off overwrite while in save best mode
 FLAGS.overwrite = FLAGS.overwrite and not FLAGS.save_best
