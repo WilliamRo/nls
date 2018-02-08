@@ -13,7 +13,7 @@ VAL_SIZE = 20000
 MEMORY_DEPTH = 80
 D = MEMORY_DEPTH
 NN_EPOCH = 500
-NN_HID_DIMS = [D] * 10
+NN_BLOCKS = 10
 NN_LEARNING_RATE = 0.001
 BATCH_SIZE = 32
 PRINT_CYCLE = 10
@@ -41,7 +41,7 @@ assert isinstance(train_set, DataSet)
 assert isinstance(val_set, DataSet)
 assert isinstance(test_set, DataSet)
 
-model = wh_model_lib.mlp_00(MEMORY_DEPTH, NN_HID_DIMS, NN_LEARNING_RATE)
+model = wh_model_lib.res_00(MEMORY_DEPTH, NN_BLOCKS, NN_LEARNING_RATE)
 
 # Define model and identify
 if FLAGS.train: model.identify(

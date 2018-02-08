@@ -13,10 +13,7 @@ VAL_SIZE = 20000
 MEMORY_DEPTH = 80
 D = MEMORY_DEPTH
 NN_EPOCH = 500
-NN_HID_DIMS = [D] * 10
-NN_LEARNING_RATE = 0.001
-BATCH_SIZE = 32
-PRINT_CYCLE = 10
+NN_LEARNING_RATE = 0.00004
 
 FLAGS.train = True
 # FLAGS.train = False
@@ -41,12 +38,11 @@ assert isinstance(train_set, DataSet)
 assert isinstance(val_set, DataSet)
 assert isinstance(test_set, DataSet)
 
-model = wh_model_lib.mlp_00(MEMORY_DEPTH, NN_HID_DIMS, NN_LEARNING_RATE)
+model = wh_model_lib.net_00(MEMORY_DEPTH, NN_LEARNING_RATE)
 
 # Define model and identify
 if FLAGS.train: model.identify(
-  train_set, val_set, batch_size=BATCH_SIZE,
-  print_cycle=PRINT_CYCLE, epoch=NN_EPOCH)
+  train_set, val_set, batch_size=10, print_cycle=100, epoch=NN_EPOCH)
 
 # Evaluation
 if EVALUATION:
