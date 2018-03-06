@@ -3,8 +3,12 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-from matplotlib import pyplot as plt
 import signals
+
+try:
+  from matplotlib import pyplot as plt
+except:
+  print('!! Failed to import matplotlib, class Figure disabled')
 
 
 class Figure(object):
