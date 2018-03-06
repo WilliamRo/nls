@@ -16,8 +16,8 @@ def main(_):
   BATCH_SIZE = 32
 
   MEMORY_DEPTH = 40
-  NN_EPOCH = 500
-  PRINT_CYCLE = 10
+  NN_EPOCH = 5
+  PRINT_CYCLE = 100
 
   FLAGS.train = True
   # FLAGS.train = False
@@ -42,7 +42,7 @@ def main(_):
   assert isinstance(val_set, DataSet)
   assert isinstance(test_set, DataSet)
 
-  model = nn_models.mlp_00(MEMORY_DEPTH, NN_LEARNING_RATE)
+  model = nn_models.mlp_00(NN_LEARNING_RATE, MEMORY_DEPTH)
 
   # Define model and identify
   if FLAGS.train: model.identify(

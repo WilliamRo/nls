@@ -9,8 +9,6 @@ from tframe.layers import Input
 
 from models.neural_net import NeuralNet
 
-import layer_combs as lc
-
 
 # region : MLP
 
@@ -33,7 +31,7 @@ def mlp_00(learning_rate=0.001, memory_depth=80):
 
   # Add layers
   nn.add(Input([memory_depth]))
-  lc._add_fc_relu_layers(nn, hidden_dims, activation, strength=strength)
+  _add_fc_relu_layers(nn, hidden_dims, activation, strength=strength)
   nn.add(Linear(output_dim=1, weight_regularizer='l2', strength=strength))
 
   # Build model
@@ -46,3 +44,11 @@ def mlp_00(learning_rate=0.001, memory_depth=80):
   return model
 
 # endregion : MLP
+
+def _add_fc_relu_layers(nn, hidden_dims, activation='relu', strength=0.0):
+  assert isinstance(nn, Predictor)
+  assert isinstance(hidden_dims, (tuple, list))
+
+  for dim in hidden_dims:
+    nn.add(Linear(output_dim=dim, weight_regularizer='l2', strength=strength))
+    nn.add(Activation(activation))
