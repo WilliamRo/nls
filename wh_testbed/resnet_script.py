@@ -20,10 +20,10 @@ PRINT_CYCLE = 10
 
 FLAGS.train = True
 # FLAGS.train = False
-FLAGS.overwrite = True
-# FLAGS.overwrite = False
-FLAGS.save_best = False
-# FLAGS.save_best = True
+# FLAGS.overwrite = True
+FLAGS.overwrite = False
+# FLAGS.save_best = False
+FLAGS.save_best = True
 
 FLAGS.smart_train = True
 FLAGS.epoch_tol = 20

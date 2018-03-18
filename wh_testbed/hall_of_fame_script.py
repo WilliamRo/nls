@@ -3,19 +3,18 @@ from tframe import console
 
 from signals.utils.dataset import load_wiener_hammerstein, DataSet
 
-import wh_model_lib
+import hall_of_fame as hof
 
 # =============================================================================
 # Global configuration
 WH_PATH = '../data/wiener_hammerstein/whb.tfd'
 VAL_SIZE = 20000
 
-MEMORY_DEPTH = 80
-D = MEMORY_DEPTH
-NN_EPOCH = 500
-NN_HID_DIMS = [D] * 10
+MEMORY_DEPTH = 40
 NN_LEARNING_RATE = 0.001
-BATCH_SIZE = 32
+
+NN_EPOCH = 50
+BATCH_SIZE = 64
 PRINT_CYCLE = 10
 
 FLAGS.train = True
@@ -41,7 +40,7 @@ assert isinstance(train_set, DataSet)
 assert isinstance(val_set, DataSet)
 assert isinstance(test_set, DataSet)
 
-model = wh_model_lib.mlp_00(MEMORY_DEPTH, NN_HID_DIMS, NN_LEARNING_RATE)
+model = hof.mlp_00(NN_LEARNING_RATE, MEMORY_DEPTH)
 
 # Define model and identify
 if FLAGS.train: model.identify(
