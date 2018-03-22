@@ -32,7 +32,7 @@ def main(_):
   LEARNING_RATE = 0.001
   BATCH_SIZE = 32
   PRINT_CYCLE = 100
-  EPOCH = 10
+  EPOCH = 2
 
   # Get model
   model = model_lib.mlp_00(
