@@ -24,7 +24,9 @@ def main(_):
     FLAGS.smart_train = False
     FLAGS.save_best = False
 
-  WH_PATH = os.path.join(nls_root, 'data/wiener_hammerstein/whb.tfd')
+  if FLAGS.data_dir == "":
+    WH_PATH = os.path.join(nls_root, 'data/wiener_hammerstein/whb.tfd')
+  else: WH_PATH = FLAGS.data_dir
   MARK = 'mlp00'
   MEMORY_DEPTH = 40
   LAYER_DIM = MEMORY_DEPTH * 2
