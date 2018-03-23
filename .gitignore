@@ -16,3 +16,8 @@ data/
 foobar/
 *foo*
 *bar*
+
+# Ignore packages in trainer
+*/trainer/models
+*/trainer/signals
+*/trainer/tframe
