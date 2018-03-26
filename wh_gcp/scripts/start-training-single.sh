@@ -51,7 +51,8 @@ echo ... batch size: $batch_size
 #--packages ../tframe/,../models/,../signals/ \
 gcloud ml-engine jobs submit training $JOB_NAME \
 	--job-dir $OUTPUT_PATH \
-	--runtime-version 1.5 \
+	--runtime-version 1.6 \
+	--config config.yaml \
 	--package-path ${PACKAGE_NAME}/ \
 	--module-name ${PACKAGE_NAME}.task \
 	--region $REGION \

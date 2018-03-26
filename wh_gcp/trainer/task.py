@@ -2,8 +2,9 @@ import os, sys
 abspath = os.path.abspath(__file__)
 dn = os.path.dirname
 nls_root = dn(dn(dn(abspath)))
-sys.path.insert(0, nls_root)   # nls
-sys.path.insert(0, dn(dn(abspath)))       # wh_gcp
+#sys.path.insert(0, nls_root)   # nls
+#sys.path.insert(0, dn(dn(abspath)))       # wh_gcp
+sys.path.append(dn)
 del dn
 
 import tensorflow as tf
