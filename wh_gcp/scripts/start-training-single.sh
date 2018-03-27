@@ -3,7 +3,7 @@
 # Default configuration
 JOB_NAME=nls_nn
 BUCKET_NAME=nls-nn-bucket
-OUTPUT_PATH=gs://$BUCKET_NAME/
+OUTPUT_PATH=gs://$BUCKET_NAME
 REGION=us-central1
 PACKAGE_NAME=trainer
 
@@ -12,7 +12,7 @@ batch_size=64
 
 # Prepare packages
 pkg_names='tframe models signals'
-bash scripts/cp_pkgs.sh .. $PACKAGE_NAME $pkg_names 
+bash scripts/cp_pkgs.sh .. . $pkg_names 
 
 # Parse arguments manually
 while [ $# -gt 0 ]
@@ -48,6 +48,8 @@ echo ... batch size: $batch_size
 
 #exit 0
 
+# Clear gs://.../packages
+
 #--packages ../tframe/,../models/,../signals/ \
 gcloud ml-engine jobs submit training $JOB_NAME \
 	--job-dir $OUTPUT_PATH \
@@ -59,7 +61,10 @@ gcloud ml-engine jobs submit training $JOB_NAME \
 	-- \
 	--mark $JOB_NAME \
 	--epoch $epoch \
-	--batch_size $batch_size
+	--batch_size $batch_size \
+	--data_dir ${OUTPUT_PATH}/data/whb/whb.tfd \
+	--job_dir $OUTPUT_PATH
 
-
+# Clear path
+bash scripts/rm_pkgs.sh . $pkg_names
 

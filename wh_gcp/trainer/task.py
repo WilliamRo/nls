@@ -1,18 +1,27 @@
-import os, sys
-abspath = os.path.abspath(__file__)
-dn = os.path.dirname
-nls_root = dn(dn(dn(abspath)))
-#sys.path.insert(0, nls_root)   # nls
-#sys.path.insert(0, dn(dn(abspath)))       # wh_gcp
-sys.path.append(dn)
-del dn
-
 import tensorflow as tf
-from tframe import FLAGS
-from tframe import console
+import os
 
-from signals.utils.dataset import load_wiener_hammerstein, DataSet
-import trainer.model_lib as model_lib
+try:
+  from tframe import FLAGS
+  from tframe import console
+
+  from signals.utils.dataset import load_wiener_hammerstein, DataSet
+  import trainer.model_lib as model_lib
+except:
+  import sys
+  abspath = os.path.abspath(__file__)
+  dn = os.path.dirname
+  nls_root = dn(dn(dn(abspath)))
+  #sys.path.insert(0, nls_root)   # nls
+  #sys.path.insert(0, dn(dn(abspath)))       # wh_gcp
+  sys.path.append(dn)
+  del dn
+
+  from tframe import FLAGS
+  from tframe import console
+
+  from signals.utils.dataset import load_wiener_hammerstein, DataSet
+  import trainer.model_lib as model_lib
 
 
 def main(_):
