@@ -9,7 +9,7 @@ REGION=us-central1
 PACKAGE_NAME=trainer
 POSTFIX=$(date -u +%d%H%M)
 
-epoch=3
+epoch=10
 batch_size=64
 
 # Prepare packages
@@ -66,6 +66,7 @@ gcloud ml-engine jobs submit training $JOB_NAME \
 	--mark $MODEL_MARK \
 	--epoch $epoch \
 	--data_dir ${GS_ROOT}/data/whb/whb.tfd \
+  --hpt True
 
 # Clear path
 bash scripts/rm_pkgs.sh . $pkg_names

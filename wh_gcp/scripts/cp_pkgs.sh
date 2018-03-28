@@ -21,7 +21,7 @@ while [[ $# -gt 0 ]]; do
 		exit 9
 	fi
 	# Check destination
-	if [[ -d $dest_dir ]]; then 
+	if [[ -d $dest ]]; then 
 		bash scripts/rm_pkgs.sh $dest_dir $1
 	fi
 	# Copy package

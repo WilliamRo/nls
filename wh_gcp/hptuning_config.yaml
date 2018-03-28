@@ -1,10 +1,11 @@
 trainingInput: 
   pythonVersion: "3.5"
+  scaleTier: STANDARD_1
   hyperparameters:
     goal: MINIMIZE
-    maxTrials: 8 
-    maxParallelTrials: 1
-    hyperparameterMetricTag: Metric/metric_sum
+    maxTrials: 30 
+    maxParallelTrials: 4
+    hyperparameterMetricTag: best_metric_sum
     enableTrialEarlyStopping: TRUE
     params:
     - parameterName: layer_num
