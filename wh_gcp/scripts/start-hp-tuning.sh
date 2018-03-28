@@ -1,13 +1,15 @@
 #!/bin/bash
 
 # Default configuration
-JOB_NAME=nls_nn
+MODEL_MARK=mlp
+JOB_NAME=$MODEL_MARK
 BUCKET_NAME=nls-nn-bucket
-OUTPUT_PATH=gs://$BUCKET_NAME
+GS_ROOT=gs://$BUCKET_NAME
 REGION=us-central1
 PACKAGE_NAME=trainer
+POSTFIX=$(date -u +%d%H%M)
 
-epoch=2
+epoch=3
 batch_size=64
 
 # Prepare packages
@@ -37,7 +39,9 @@ do
 	esac
 done
 
-JOB_NAME=${JOB_NAME}_$(date -u +%y%m%d%H%M%S)
+# Update job name
+JOB_NAME=${JOB_NAME}_$POSTFIX
+OUTPUT_PATH=${GS_ROOT}/hpt/$JOB_NAME
 
 # Show status
 echo '>> Start to run a single-instance trainer in the cloud ...'
@@ -54,15 +58,14 @@ echo ... batch size: $batch_size
 gcloud ml-engine jobs submit training $JOB_NAME \
 	--job-dir $OUTPUT_PATH \
 	--runtime-version 1.6 \
-	--config config.yaml \
+	--config hptuning_config.yaml \
 	--package-path ${PACKAGE_NAME}/ \
-	--module-name ${PACKAGE_NAME}.task \
+	--module-name ${PACKAGE_NAME}.hpt_task \
 	--region $REGION \
 	-- \
-	--mark $JOB_NAME \
+	--mark $MODEL_MARK \
 	--epoch $epoch \
-	--batch_size $batch_size \
-	--data_dir ${OUTPUT_PATH}/data/whb/whb.tfd \
+	--data_dir ${GS_ROOT}/data/whb/whb.tfd \
 
 # Clear path
 bash scripts/rm_pkgs.sh . $pkg_names
