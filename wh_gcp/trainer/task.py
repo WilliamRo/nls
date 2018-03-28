@@ -12,8 +12,8 @@ except:
   abspath = os.path.abspath(__file__)
   dn = os.path.dirname
   nls_root = dn(dn(dn(abspath)))
-  #sys.path.insert(0, nls_root)   # nls
-  #sys.path.insert(0, dn(dn(abspath)))       # wh_gcp
+  sys.path.insert(0, nls_root)   # nls
+  sys.path.insert(0, dn(dn(abspath)))       # wh_gcp
   sys.path.append(dn)
   del dn
 
@@ -33,18 +33,20 @@ def main(_):
     FLAGS.overwrite = True
     FLAGS.smart_train = False
     FLAGS.save_best = False
+    FLAGS.progress_bar = False
 
   if FLAGS.data_dir == "":
     WH_PATH = os.path.join(nls_root, 'data/wiener_hammerstein/whb.tfd')
   else: WH_PATH = FLAGS.data_dir
   MARK = 'mlp00'
   MEMORY_DEPTH = 40
-  LAYER_DIM = MEMORY_DEPTH * 2
-  LAYER_NUM = 4
-  LEARNING_RATE = 0.001
-  BATCH_SIZE = 32
   PRINT_CYCLE = 100
   EPOCH = 2
+
+  LAYER_DIM = MEMORY_DEPTH * 2
+  LAYER_NUM = 2
+  LEARNING_RATE = 0.001
+  BATCH_SIZE = 64
 
   # Get model
   model = model_lib.mlp_00(

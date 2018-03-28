@@ -1,0 +1,30 @@
+trainingInput: 
+  pythonVersion: "3.5"
+  hyperparameters:
+    goal: MINIMIZE
+    maxTrials: 8 
+    maxParallelTrials: 1
+    hyperparameterMetricTag: Metric/metric_sum
+    enableTrialEarlyStopping: TRUE
+    params:
+    - parameterName: layer_num
+      type: INTEGER
+      minValue: 2
+      maxValue: 8
+      scaleType: UNIT_LINEAR_SCALE
+    - parameterName: lr
+      type: DOUBLE
+      minValue: 0.00001
+      maxValue: 0.1
+      scaleType: UNIT_LOG_SCALE
+    - parameterName: batch_size
+      type: DISCRETE
+      discreteValues:
+      - 4
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
+      - 256
+      - 512
