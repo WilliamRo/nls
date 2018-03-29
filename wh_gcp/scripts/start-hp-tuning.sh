@@ -9,7 +9,12 @@ REGION=us-central1
 PACKAGE_NAME=trainer
 POSTFIX=$(date -u +%d%H%M)
 
+<<<<<<< HEAD
 epoch=10
+=======
+epoch=3
+batch_size=64
+>>>>>>> origin
 
 # Prepare packages
 pkg_names='tframe models signals'
@@ -23,6 +28,13 @@ do
 			epoch=$2
 			shift 2
 			;;
+<<<<<<< HEAD
+=======
+		--batch_size)
+			batch_size=$2
+			shift 2
+			;;
+>>>>>>> origin
 		--job-name)
 			JOB_NAME=$2
 			shift 2
@@ -61,7 +73,10 @@ gcloud ml-engine jobs submit training $JOB_NAME \
 	--mark $MODEL_MARK \
 	--epoch $epoch \
 	--data_dir ${GS_ROOT}/data/whb/whb.tfd \
+<<<<<<< HEAD
   --hpt True
+=======
+>>>>>>> origin
 
 # Clear path
 bash scripts/rm_pkgs.sh . $pkg_names
