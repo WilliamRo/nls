@@ -62,7 +62,7 @@ gcloud ml-engine jobs submit training $JOB_NAME \
 	--mark $MODEL_MARK \
 	--epoch $epoch \
 	--data_dir ${GS_ROOT}/data/whb/whb.tfd \
-  --hpt True
+    --hpt True
 
 # Clear path
 bash scripts/rm_pkgs.sh . $pkg_names
