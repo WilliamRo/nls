@@ -1,41 +1,45 @@
 import tensorflow as tf
+import os
+import sys
 
+abspath = os.path.abspath(__file__)
+dn = os.path.dirname
+nls_root = dn(dn(dn(abspath)))
+sys.path.insert(0, nls_root)   # nls
+sys.path.insert(0, dn(dn(abspath)))       # wh_gcp
+sys.path.append(dn)
+del dn
+
+from tframe import FLAGS
 from tframe import console
 
 from signals.utils.dataset import load_wiener_hammerstein, DataSet
 import trainer.model_lib as model_lib
-
-# Add command-line arguments for hyper-parameters
-flags = tf.app.flags
-
-flags.DEFINE_integer("layer_num", 3, "Layer number")
-#flags.DEFINE_float("lr", 0.001, "Learning rate")
-#flags.DEFINE_integer("batch_size", -1, "The size of batch images")
-
-FLAGS = flags.FLAGS
 
 
 def main(_):
   console.start('trainer.task')
 
   # Set default flags
-  FLAGS.train = True
   if FLAGS.use_default:
+    FLAGS.train = True
     FLAGS.overwrite = True
-    FLAGS.smart_train = True
+    FLAGS.smart_train = False
     FLAGS.save_best = False
+    FLAGS.progress_bar = True
 
-  WH_PATH = FLAGS.data_dir
-
+  if FLAGS.data_dir == "":
+    WH_PATH = os.path.join(nls_root, 'data/wiener_hammerstein/whb.tfd')
+  else: WH_PATH = FLAGS.data_dir
   MARK = 'mlp00'
   MEMORY_DEPTH = 40
-  PRINT_CYCLE = 50
-  EPOCH = 100
+  PRINT_CYCLE = 100
+  EPOCH = 2
 
   LAYER_DIM = MEMORY_DEPTH * 2
-  LAYER_NUM = FLAGS.layer_num
-  LEARNING_RATE = FLAGS.lr
-  BATCH_SIZE = FLAGS.batch_size
+  LAYER_NUM = 2
+  LEARNING_RATE = 0.001
+  BATCH_SIZE = 64
 
   # Get model
   model = model_lib.mlp_00(
@@ -48,10 +52,12 @@ def main(_):
   assert isinstance(val_set, DataSet)
   assert isinstance(test_set, DataSet)
 
-  # Train
+  # Train or evaluate
   if FLAGS.train:
     model.identify(train_set, val_set, batch_size=BATCH_SIZE,
                    print_cycle=PRINT_CYCLE, epoch=EPOCH)
+  else:
+    pass
 
   console.end()
 

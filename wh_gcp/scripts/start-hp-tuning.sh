@@ -10,7 +10,6 @@ PACKAGE_NAME=trainer
 POSTFIX=$(date -u +%d%H%M)
 
 epoch=10
-batch_size=64
 
 # Prepare packages
 pkg_names='tframe models signals'
@@ -22,10 +21,6 @@ do
 	case $1 in 
 		--epoch)
 			epoch=$2
-			shift 2
-			;;
-		--batch_size)
-			batch_size=$2
 			shift 2
 			;;
 		--job-name)
