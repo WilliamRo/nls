@@ -14,7 +14,7 @@ class DataSet(TFData):
   """A dataset class for signals based on TFData"""
 
   def __init__(self, signls, responses=None, name='unnamed', memory_depth=None,
-               intensity=None, cut=False):
+               intensity=None, cut=True):
     # Sanity check
     if not isinstance(signls, (tuple, list)): signls = [signls]
     fs = signls[0].fs
