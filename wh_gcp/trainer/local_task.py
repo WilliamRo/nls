@@ -20,30 +20,36 @@ import trainer.model_lib as model_lib
 def main(_):
   console.start('trainer.task')
 
-  # Set default flags
-  if FLAGS.use_default:
-    FLAGS.train = True
-    FLAGS.overwrite = True
-    FLAGS.smart_train = False
-    FLAGS.save_best = False
-    FLAGS.progress_bar = True
+  EPOCH = 1000
+  # FLAGS.train = False
+  FLAGS.overwrite = True
+  # FLAGS.save_best = True
+  FLAGS.smart_train = True
 
-  if FLAGS.data_dir == "":
-    WH_PATH = os.path.join(nls_root, 'data/wiener_hammerstein/whb.tfd')
-  else: WH_PATH = FLAGS.data_dir
-  MARK = 'mlp00'
-  MEMORY_DEPTH = 40
-  PRINT_CYCLE = 100
-  EPOCH = 2
-
-  LAYER_DIM = MEMORY_DEPTH * 2
-  LAYER_NUM = 2
+  # Hyper parameters
   LEARNING_RATE = 0.001
-  BATCH_SIZE = 64
+  LAYER_NUM = 4
+  BATCH_SIZE = 32
+  MEMORY_DEPTH = 80
+  LAYER_DIM = MEMORY_DEPTH * 2
+  ACTIVATION = 'relu'
+
+  # Set default flags
+  FLAGS.progress_bar = True
+
+  FLAGS.save_model = True
+  FLAGS.summary = False
+  FLAGS.snapshot = False
+
+  PRINT_CYCLE = 100
+
+  WH_PATH = os.path.join(nls_root, 'data/wiener_hammerstein/whb.tfd')
+  MARK = 'mlp00'
 
   # Get model
   model = model_lib.mlp_00(
-    MARK, MEMORY_DEPTH, LAYER_DIM, LAYER_NUM, LEARNING_RATE)
+    MARK, MEMORY_DEPTH, LAYER_DIM, LAYER_NUM, LEARNING_RATE,
+    activation=ACTIVATION)
 
   # Load data set
   train_set, val_set, test_set = load_wiener_hammerstein(
@@ -57,7 +63,8 @@ def main(_):
     model.identify(train_set, val_set, batch_size=BATCH_SIZE,
                    print_cycle=PRINT_CYCLE, epoch=EPOCH)
   else:
-    pass
+    model.evaluate(train_set, start_at=1000, plot=False)
+    model.evaluate(test_set, start_at=1000, plot=False)
 
   console.end()
 
