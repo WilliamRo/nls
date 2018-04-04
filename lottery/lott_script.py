@@ -27,13 +27,14 @@ def main(_):
   BATCH_SIZE = 32
   PRINT_CYCLE = 100
   BRANCH_INDEX = 2
+  FIX_PRE_WEIGHT = False
 
-  FLAGS.train = False
+  # FLAGS.train = False
   FLAGS.overwrite = True and BRANCH_INDEX == 0
   FLAGS.smart_train = True
   FLAGS.save_best = True and BRANCH_INDEX > 0
   FLAGS.summary = False
-  # FLAGS.save_model = False
+  FLAGS.save_model = False
   FLAGS.snapshot = False
 
   # Load data
@@ -50,7 +51,7 @@ def main(_):
   if FLAGS.train:
     model.identify(train_set, val_set, batch_size=BATCH_SIZE,
                    print_cycle=PRINT_CYCLE, epoch=EPOCH,
-                   branch_index=BRANCH_INDEX)
+                   branch_index=BRANCH_INDEX, freeze=FIX_PRE_WEIGHT)
   else:
     BRANCH_INDEX = 1
     model.evaluate(train_set, start_at=MEMORY_DEPTH, branch_index=BRANCH_INDEX)
