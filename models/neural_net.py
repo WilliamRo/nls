@@ -9,6 +9,7 @@ from tframe import console
 from tframe import Predictor
 from tframe import TFData
 from tframe.models.sl.vn import VolterraNet
+from tframe.models.sl.bamboo import Bamboo
 
 from models import Model
 from signals import Signal
@@ -32,8 +33,11 @@ class NeuralNet(Model):
     self.D = memory_depth
     self.degree = degree
     # TODO: compromise
-    if degree is None: self.nn = Predictor(mark=mark)
-    else: self.nn = VolterraNet(degree, memory_depth, mark, **kwargs)
+    bamboo = kwargs.get('bamboo', False)
+    if degree is not None:
+      self.nn = VolterraNet(degree, memory_depth, mark, **kwargs)
+    elif bamboo: self.nn = Bamboo(mark=mark)
+    else: self.nn = Predictor(mark=mark)
 
   # region : Public Methods
 
@@ -48,7 +52,7 @@ class NeuralNet(Model):
       raise AssertionError('!! Model has not been built yet')
     mlp_input = self._gen_mlp_input(input_)
     tfinput = TFData(mlp_input)
-    output = self.nn.predict(tfinput).flatten()
+    output = self.nn.predict(tfinput, **kwargs).flatten()
 
     output = Signal(output)
     output.__array_finalize__(input_)
@@ -63,7 +67,7 @@ class NeuralNet(Model):
                   snapshot_cycle=snapshot_cycle, epoch=epoch, probe=None,
                   snapshot_function=snapshot_function, **kwargs)
 
-  def evaluate(self, dataset, start_at=0, plot=False):
+  def evaluate(self, dataset, start_at=0, plot=False, **kwargs):
     # Check input
     if not isinstance(dataset, DataSet):
       raise TypeError('!! Input data set must be an instance of DataSet')
@@ -76,7 +80,7 @@ class NeuralNet(Model):
 
     # Evaluate
     system_output = y[start_at:]
-    model_output = self(u)[start_at:]
+    model_output = self(u, **kwargs)[start_at:]
     err = system_output - model_output
     ratio = lambda val: 100 * val / system_output.rms
 

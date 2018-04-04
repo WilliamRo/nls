@@ -95,7 +95,7 @@ def svn_00(memory, learning_rate=0.001):
   D = memory
   hidden_dims = [2 * D] * 4
   p_order = 2
-  mark = 'svn_{}_o{}'.format(hidden_dims, p_order)
+  mark = 'svn_{}_{}'.format(hidden_dims, p_order)
 
   # Initiate a predictor
   model = NeuralNet(memory, mark=mark)
