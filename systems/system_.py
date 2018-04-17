@@ -10,19 +10,13 @@ from signals.utils import Subplot
 
 class System(object):
   """Base class of all systems"""
-  def __init__(self, response_function):
-    if not callable(response_function):
-      raise TypeError('!! Input response must be callable')
-    self.response_function = response_function
+  def __init__(self):
+    pass
 
   # region : Public Methods
 
-  def response(self, signl):
-    if not isinstance(signl, Signal):
-      raise TypeError('!! Input must be an instance of Signal')
-    output = Signal(self.response_function(signl))
-    output.__array_finalize__(signl)
-    return output
+  def response(self, signl, **kwargs):
+    raise NotImplementedError('!! response not implemented')
 
   # endregion : Public Methods
 
@@ -36,8 +30,10 @@ class System(object):
 
   # region : Operator Overloading
 
-  def __call__(self, signl):
-    return self.response(signl)
+  def __call__(self, signl, **kwargs):
+    if not isinstance(signl, Signal):
+      raise TypeError('!! Input must be an instance of Signal')
+    return self.response(signl, **kwargs)
 
   # endregion : Operator Overloading
 
