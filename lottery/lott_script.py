@@ -8,7 +8,8 @@ sys.path.append(dn(dn(abs_path)))
 del dn, abs_path
 
 from tframe import console
-from tframe import FLAGS
+from tframe import SaveMode
+from tframe.trainers import SmartTrainerHub
 
 from signals.utils.dataset import load_wiener_hammerstein, DataSet
 
@@ -19,23 +20,28 @@ def main(_):
   console.start('Lottery')
 
   # Configurations
-  MARK = 'mlp00'
   MEMORY_DEPTH = 80
-  HIDDEN_DIM = MEMORY_DEPTH * 16
-  EPOCH = 5000
-  LR = 0.001
-  BATCH_SIZE = 32
-  PRINT_CYCLE = 100
-  BRANCH_INDEX = 2
-  FIX_PRE_WEIGHT = False
+  HIDDEN_DIM = MEMORY_DEPTH * 2
+  FIX_PRE_WEIGHT = True
+  BRANCH_INDEX = 0
 
-  # FLAGS.train = False
-  FLAGS.overwrite = True and BRANCH_INDEX == 0
-  FLAGS.smart_train = True
-  FLAGS.save_best = True and BRANCH_INDEX > 0
-  FLAGS.summary = False
-  FLAGS.save_model = False
-  FLAGS.snapshot = False
+  th = SmartTrainerHub(as_global=True)
+  th.mark = 'mlp00'
+  th.epoch = 5
+  th.batch_size = 32
+  th.learning_rate = 0.001
+  th.print_cycle = 100
+  th.validate_cycle = 300
+  # th.validation_per_round = 10
+
+  th.train = True
+  # th.smart_train = True
+  th.overwrite = True and BRANCH_INDEX == 0
+  th.summary = False
+  th.snapshot = False
+  # th.save_model = False
+  th.save_mode = SaveMode.NAIVE
+  th.warm_up_rounds = 5
 
   # Load data
   train_set, val_set, test_set = load_wiener_hammerstein(
@@ -45,15 +51,14 @@ def main(_):
   assert isinstance(test_set, DataSet)
 
   # Get model
-  model = lott_lib.mlp00(MARK, MEMORY_DEPTH, HIDDEN_DIM, LR)
+  model = lott_lib.mlp00(th.mark, MEMORY_DEPTH, HIDDEN_DIM, th.learning_rate)
 
   # Train or evaluate
-  if FLAGS.train:
-    model.identify(train_set, val_set, batch_size=BATCH_SIZE,
-                   print_cycle=PRINT_CYCLE, epoch=EPOCH,
+  if th.train:
+    model.nn.train(train_set, validation_set=val_set, trainer_hub=th,
                    branch_index=BRANCH_INDEX, freeze=FIX_PRE_WEIGHT)
   else:
-    BRANCH_INDEX = 1
+    # BRANCH_INDEX = 1
     model.evaluate(train_set, start_at=MEMORY_DEPTH, branch_index=BRANCH_INDEX)
     model.evaluate(val_set, start_at=MEMORY_DEPTH, branch_index=BRANCH_INDEX)
     model.evaluate(test_set, start_at=MEMORY_DEPTH, branch_index=BRANCH_INDEX)

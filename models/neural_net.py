@@ -45,7 +45,7 @@ class NeuralNet(Model):
     if optimizer is None:
       optimizer = tf.train.AdamOptimizer(learning_rate)
     self.nn.build(loss='euclid', metric='ratio', metric_name='Err %',
-                  optimizer=optimizer)
+                  optimizer=optimizer, metric_is_like_loss=True)
 
   def inference(self, input_, **kwargs):
     if not self.nn.built:
@@ -58,14 +58,9 @@ class NeuralNet(Model):
     output.__array_finalize__(input_)
     return output
 
-  def identify(self, training_set, val_set=None, probe=None,
-               batch_size=64, print_cycle=100, snapshot_cycle=1000,
-               snapshot_function=None, epoch=1, **kwargs):
+  def identify(self, *args, **kwargs):
     # Train
-    self.nn.train(batch_size=batch_size, training_set=training_set,
-                  validation_set=val_set, print_cycle=print_cycle,
-                  snapshot_cycle=snapshot_cycle, epoch=epoch, probe=None,
-                  snapshot_function=snapshot_function, **kwargs)
+    self.nn.train(*args, **kwargs)
 
   def evaluate(self, dataset, start_at=0, plot=False, **kwargs):
     # Check input
