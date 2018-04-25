@@ -39,8 +39,8 @@ def mlp_00(memory_depth, mark):
   model.nn.add(Linear(output_dim=1, weight_regularizer='l2', strength=reg))
 
   # Build model
-  model.nn.build(loss='euclid', metric='ratio', metric_name='Err%',
-                 optimizer=tf.train.AdamOptimizer(learning_rate))
+  model.nn._build(loss='euclid', metric='ratio', metric_name='Err%',
+                  optimizer=tf.train.AdamOptimizer(learning_rate))
 
   return model
 
@@ -71,9 +71,9 @@ def vn_00(memory_depth, mark, degree=None, homo_str=0.0):
     model.nn.T[order].add(Linear(1, weight_regularizer='l2', strength=reg))
 
   # Build model
-  model.nn.build(loss='euclid', metric='ratio', metric_name='Err%',
-                 homo_strength=homo_str,
-                 optimizer=tf.train.AdamOptimizer(learning_rate))
+  model.nn._build(loss='euclid', metric='ratio', metric_name='Err%',
+                  homo_strength=homo_str,
+                  optimizer=tf.train.AdamOptimizer(learning_rate))
   return model
 
 # endregion : Volterra Networks

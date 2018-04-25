@@ -11,7 +11,7 @@ from signals.utils import Figure, Subplot, DataSet
 from tframe import FLAGS
 from tframe import console
 
-import model_lib
+import nn_model_lib
 
 
 # =============================================================================
@@ -92,7 +92,7 @@ wiener = Wiener(degree, memory_depth)
 wiener.identify(train_set, val_set)
 
 # MLP
-mlp = model_lib.mlp_00(memory_depth, mlp_mark)
+mlp = nn_model_lib.mlp_00(memory_depth, mlp_mark)
 
 if FLAGS.train:
   mlp.identify(train_set, val_set, batch_size=50,
@@ -101,7 +101,7 @@ if FLAGS.train:
                  signal, system_output))
 
 # VN
-vn = model_lib.vn_00(memory_depth, vn_mark)
+vn = nn_model_lib.vn_00(memory_depth, vn_mark)
 if FLAGS.train:
   vn.identify(train_set, val_set, batch_size=50,
               print_cycle=100, epoch=1, snapshot_cycle=2000,

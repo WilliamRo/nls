@@ -7,6 +7,7 @@ import tensorflow as tf
 
 from tframe import console
 from tframe import Predictor
+from tframe.models.model import Model as TFrModel
 from tframe import TFData
 from tframe.models.sl.vn import VolterraNet
 from tframe.models.sl.bamboo import Bamboo
@@ -34,7 +35,10 @@ class NeuralNet(Model):
     self.degree = degree
     # TODO: compromise
     bamboo = kwargs.get('bamboo', False)
-    if degree is not None:
+    nn_class = kwargs.get('nn_class', None)
+    if nn_class is not None:
+      self.nn = nn_class(mark=mark)
+    elif degree is not None:
       self.nn = VolterraNet(degree, memory_depth, mark, **kwargs)
     elif bamboo: self.nn = Bamboo(mark=mark)
     else: self.nn = Predictor(mark=mark)

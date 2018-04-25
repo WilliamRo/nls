@@ -12,7 +12,7 @@ from signals.utils import Figure, Subplot, DataSet
 from tframe import FLAGS
 from tframe import console
 
-import model_lib
+import nn_model_lib
 
 
 # =============================================================================
@@ -100,8 +100,8 @@ homo_strs = []
 for i in range(10): homo_strs.append(i * 0.05)
 vns = collections.OrderedDict()
 for homo_str in homo_strs:
-  vn = model_lib.vn_00(memory_depth, 'vn_{:.2f}'.format(homo_str),
-                       degree=degree, homo_str=homo_str)
+  vn = nn_model_lib.vn_00(memory_depth, 'vn_{:.2f}'.format(homo_str),
+                          degree=degree, homo_str=homo_str)
   vns[homo_str] = vn
   if FLAGS.train:
     vn.identify(

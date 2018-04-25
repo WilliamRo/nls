@@ -9,7 +9,7 @@ from tframe.layers import Linear
 
 def mlp00(mark, memory_depth, hidden_dim, learning_rate):
   # Initiate a neural net
-  model = NeuralNet(memory_depth, mark=mark, bamboo=True)
+  model = NeuralNet(memory_depth, mark=mark, nn_class=Bamboo)
   nn = model.nn
   assert isinstance(nn, Bamboo)
 
@@ -21,12 +21,20 @@ def mlp00(mark, memory_depth, hidden_dim, learning_rate):
   branch = nn.add_branch()
   branch.add(Linear(output_dim=1))
 
-  nn.add(Linear(output_dim=hidden_dim))
+  nn.add(Linear(output_dim=hidden_dim, weight_initializer='id',
+                bias_initializer='ones'))
   nn.add(Activation('relu'))
   branch = nn.add_branch()
   branch.add(Linear(output_dim=1))
 
-  nn.add(Linear(output_dim=hidden_dim))
+  nn.add(Linear(output_dim=hidden_dim, weight_initializer='id',
+                bias_initializer='ones'))
+  nn.add(Activation('relu'))
+  branch = nn.add_branch()
+  branch.add(Linear(output_dim=1))
+
+  nn.add(Linear(output_dim=hidden_dim, weight_initializer='id',
+                bias_initializer='ones'))
   nn.add(Activation('relu'))
   nn.add(Linear(output_dim=1))
 

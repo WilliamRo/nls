@@ -37,8 +37,8 @@ def mlp_00(learning_rate=0.001, memory_depth=80):
   # Build model
   # optimizer = tf.train.GradientDescentOptimizer(learning_rate)
   optimizer = tf.train.AdamOptimizer(learning_rate)
-  nn.build(loss='euclid', metric='rms_ratio', metric_name='RMS(err)%',
-           optimizer=optimizer)
+  nn._build(loss='euclid', metric='rms_ratio', metric_name='RMS(err)%',
+            optimizer=optimizer)
 
   # Return model
   return model

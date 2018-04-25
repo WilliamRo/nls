@@ -25,7 +25,7 @@ def vanilla_RNN(mark):
   model.add(Linear(output_dim=1))
 
   # Build model
-  model.build(loss='euclid', metric='ratio', metric_name='Err %')
+  model._build(loss='euclid', metric='ratio', metric_name='Err %')
 
   # Return model
   return model

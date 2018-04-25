@@ -163,8 +163,8 @@ def mlp_00(memory_depth, hidden_dims, learning_rate=0.001):
   nn.add(Linear(output_dim=1))
 
   # Build model
-  nn.build(loss='euclid', metric='rms_ratio', metric_name='RMS(err)%',
-           optimizer=tf.train.AdamOptimizer(learning_rate))
+  nn._build(loss='euclid', metric='rms_ratio', metric_name='RMS(err)%',
+            optimizer=tf.train.AdamOptimizer(learning_rate))
 
   # Return model
   return model

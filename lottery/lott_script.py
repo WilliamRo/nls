@@ -21,27 +21,30 @@ def main(_):
 
   # Configurations
   MEMORY_DEPTH = 80
-  HIDDEN_DIM = MEMORY_DEPTH * 2
+  HIDDEN_DIM = MEMORY_DEPTH * 16
   FIX_PRE_WEIGHT = True
   BRANCH_INDEX = 0
 
   th = SmartTrainerHub(as_global=True)
   th.mark = 'mlp00'
-  th.epoch = 5
-  th.batch_size = 32
+  th.epoch = 1000
+  th.batch_size = 64
   th.learning_rate = 0.001
-  th.print_cycle = 100
-  th.validate_cycle = 300
-  # th.validation_per_round = 10
+  # th.print_cycle = 80
+  # th.validate_cycle = 300
+  th.validation_per_round = 40
+  th.idle_tol = 20
+  th.max_bad_apples = 6
 
   th.train = True
   # th.smart_train = True
   th.overwrite = True and BRANCH_INDEX == 0
+  th.export_note = True
   th.summary = False
   th.snapshot = False
   # th.save_model = False
-  th.save_mode = SaveMode.NAIVE
-  th.warm_up_rounds = 5
+  th.save_mode = SaveMode.ON_RECORD
+  th.warm_up_rounds = 10
 
   # Load data
   train_set, val_set, test_set = load_wiener_hammerstein(

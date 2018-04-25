@@ -163,9 +163,9 @@ def init_vn(mark, homo_str):
     model.nn.add(order, Linear(1, weight_regularizer='l2', strength=reg))
 
   # Build model
-  model.nn.build(loss='euclid', metric='ratio', metric_name='Err %',
-                 homo_strength=homo_str,
-                 optimizer=tf.train.AdamOptimizer(learning_rate))
+  model.nn._build(loss='euclid', metric='ratio', metric_name='Err %',
+                  homo_strength=homo_str,
+                  optimizer=tf.train.AdamOptimizer(learning_rate))
   return model
 
 def verify(vns, wn, system, test_set):
