@@ -38,17 +38,17 @@ def main(_):
   # Configurations
   th = NlsHub(as_global=True)
   th.memory_depth = 80
-  th.num_blocks = 1
-  th.multiplier = 8
+  th.num_blocks = 2
+  th.multiplier = 6
   th.hidden_dim = th.memory_depth * th.multiplier
 
-  th.mark = 'mlp00'
+  th.mark = 'mlp2-0'
   th.epoch = 50000
   th.batch_size = 64
   th.learning_rate = 0.0001
   th.validation_per_round = 30
 
-  th.train = True
+  th.train = False
   th.smart_train = True
   th.idle_tol = 20
   th.early_stop = True

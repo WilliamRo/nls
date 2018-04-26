@@ -93,13 +93,16 @@ class NeuralNet(Model):
 
     # The mean value of the simulation error in time domain
     val = err.average
-    console.supplement('E[err] = {:.4f} ({:.3f}%)'.format(val, ratio(val)))
+    console.supplement('E[err] = {:.4f}mV ({:.3f}%)'.format(
+      val * 1000, ratio(val)))
     # The standard deviation of the error in time domain
     val = float(np.std(err))
-    console.supplement('STD[err] = {:.4f} ({:.3f}%)'.format(val, ratio(val)))
+    console.supplement('STD[err] = {:.4f}mV ({:.3f}%)'.format(
+      val * 1000, ratio(val)))
     # The root mean square value of the error in time domain
     val = err.rms
-    console.supplement('RMS[err] = {:.4f} ({:.3f}%)'.format(val, ratio(val)))
+    console.supplement('RMS[err] = {:.4f}mV ({:.3f}%)'.format(
+      val * 1000, ratio(val)))
 
     # Plot
     if not plot: return
