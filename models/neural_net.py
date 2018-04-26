@@ -20,10 +20,10 @@ from signals.utils.figure import Figure, Subplot
 
 
 class NlsHub(SmartTrainerHub):
-  memory_depth = Flag.integer(80, '...')
-  hidden_num = Flag.integer(1, '...')
+  memory_depth = Flag.integer(80, '...', is_key=True)
+  num_blocks = Flag.integer(1, '...', is_key=True)
   hidden_dim = Flag.integer(80, '...')
-  multiplier = Flag.integer(8, '...')
+  multiplier = Flag.integer(8, '...', is_key=True)
 
 NlsHub.register()
 

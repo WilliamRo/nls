@@ -38,7 +38,7 @@ def main(_):
   # Configurations
   th = NlsHub(as_global=True)
   th.memory_depth = 80
-  th.hidden_num = 1
+  th.num_blocks = 1
   th.multiplier = 8
   th.hidden_dim = th.memory_depth * th.multiplier
 
@@ -61,7 +61,7 @@ def main(_):
 
   # Get model
   model = model_lib.mlp_00(th.mark, th.memory_depth, th.hidden_dim,
-                           th.hidden_num, th.learning_rate)
+                           th.num_blocks, th.learning_rate)
   # Load data
   train_set, val_set, test_set = load_wiener_hammerstein(
     th.data_dir, depth=th.memory_depth)
