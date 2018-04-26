@@ -7,17 +7,25 @@ import tensorflow as tf
 
 from tframe import console
 from tframe import Predictor
-from tframe.models.model import Model as TFrModel
 from tframe import TFData
 from tframe.models.sl.vn import VolterraNet
 from tframe.models.sl.bamboo import Bamboo
+from tframe.trainers import SmartTrainerHub
+from tframe.config import Flag
 
 from models import Model
 from signals import Signal
 from signals.utils.dataset import DataSet
 from signals.utils.figure import Figure, Subplot
-from signals.generator import gaussian_white_noise
 
+
+class NlsHub(SmartTrainerHub):
+  memory_depth = Flag.integer(80, '...')
+  hidden_num = Flag.integer(1, '...')
+  hidden_dim = Flag.integer(80, '...')
+  multiplier = Flag.integer(8, '...')
+
+NlsHub.register()
 
 class NeuralNet(Model):
   """A model for non-linear system based on neural network"""
