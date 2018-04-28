@@ -39,19 +39,20 @@ def main(_):
   th = NlsHub(as_global=True)
   th.memory_depth = 80
   th.num_blocks = 1
-  th.multiplier = 4
+  th.multiplier = 8
   th.hidden_dim = th.memory_depth * th.multiplier
 
   th.mark = 'res_h{}_0'.format(th.num_blocks + 1)
   th.epoch = 50000
-  th.batch_size = 64
+  th.batch_size = 128
   th.learning_rate = 0.0001
+  th.reg_strength = 0.000
   th.validation_per_round = 30
 
   th.train = True
   th.smart_train = True
-  th.idle_tol = 20
-  th.max_bad_apples = 4
+  th.idle_tol = 40
+  th.max_bad_apples = 7
   th.lr_decay = 0.6
   th.early_stop = True
   th.save_mode = SaveMode.ON_RECORD
@@ -59,11 +60,10 @@ def main(_):
   th.overwrite = True
   th.export_note = True
   th.summary = False
-  th.save_model = True
+  th.save_model = False
 
   # Get model
-  model = model_lib.res_00(th.mark, th.memory_depth, th.hidden_dim,
-                           th.num_blocks, th.learning_rate)
+  model = model_lib.res_00(th)
   # Load data
   train_set, val_set, test_set = load_wiener_hammerstein(
     th.data_dir, depth=th.memory_depth)

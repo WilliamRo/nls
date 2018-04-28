@@ -21,7 +21,7 @@ from signals.utils.figure import Figure, Subplot
 
 class NlsHub(SmartTrainerHub):
   memory_depth = Flag.integer(80, '...', is_key=True)
-  num_blocks = Flag.integer(1, '...', is_key=True)
+  num_blocks = Flag.integer(1, '...', is_key=None)
   hidden_dim = Flag.integer(80, '...')
   multiplier = Flag.integer(8, '...', is_key=True)
 
@@ -56,7 +56,7 @@ class NeuralNet(Model):
   def default_build(self, learning_rate=0.001, optimizer=None):
     if optimizer is None:
       optimizer = tf.train.AdamOptimizer(learning_rate)
-    self.nn.build(loss='euclid', metric='ratio', metric_name='Err %',
+    self.nn.build(loss='euclid', metric='ratio', metric_name='Err%',
                   optimizer=optimizer, metric_is_like_loss=True)
 
   def inference(self, input_, **kwargs):

@@ -33,20 +33,21 @@ except:
 
 
 def main(_):
-  console.start('mlp task')
+  console.start('BResNet task')
 
   # Configurations
   th = NlsHub(as_global=True)
   th.memory_depth = 80
-  th.num_blocks = 1
+  th.num_blocks = 3
   th.multiplier = 8
   th.hidden_dim = th.memory_depth * th.multiplier
 
-  th.mark = 'mlp_h{}_0'.format(th.num_blocks)
-  th.epoch = 50000
+  th.mark = 'bres-{}x({}x{})-0'.format(
+    th.num_blocks, th.memory_depth, th.multiplier)
+  th.epoch = 5
   th.batch_size = 64
   th.learning_rate = 0.0001
-  # th.reg_strength = 0.0001
+  th.reg_strength = 0.000
   th.validation_per_round = 30
 
   th.train = True
@@ -60,10 +61,10 @@ def main(_):
   th.overwrite = True
   th.export_note = True
   th.summary = False
-  th.save_model = True
+  th.save_model = False
 
   # Get model
-  model = model_lib.mlp_00(th)
+  model = model_lib.bres_net00(th)
   # Load data
   train_set, val_set, test_set = load_wiener_hammerstein(
     th.data_dir, depth=th.memory_depth)
