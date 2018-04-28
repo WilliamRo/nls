@@ -42,7 +42,8 @@ def main(_):
   th.multiplier = 8
   th.hidden_dim = th.memory_depth * th.multiplier
 
-  th.mark = 'res_h{}_0'.format(th.num_blocks + 1)
+  th.mark = 'res-{}x({}x{})-0'.format(
+    th.num_blocks, th.memory_depth, th.multiplier)
   th.epoch = 50000
   th.batch_size = 128
   th.learning_rate = 0.0001

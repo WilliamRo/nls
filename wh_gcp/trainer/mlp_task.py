@@ -42,7 +42,8 @@ def main(_):
   th.multiplier = 8
   th.hidden_dim = th.memory_depth * th.multiplier
 
-  th.mark = 'mlp_h{}_0'.format(th.num_blocks)
+  th.mark = 'mlp-{}x({}x{})-0'.format(
+    th.num_blocks, th.memory_depth, th.multiplier)
   th.epoch = 50000
   th.batch_size = 64
   th.learning_rate = 0.0001

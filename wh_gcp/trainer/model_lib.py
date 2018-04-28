@@ -84,11 +84,12 @@ def bres_net00(th, activation='relu'):
   branch.add(Linear(output_dim=1))
 
   for _ in range(th.num_blocks - 1):
-    nn.add(Linear(output_dim=th.hidden_dim, weight_initializer='zeros',
+    nn.add(Linear(output_dim=th.hidden_dim, #weight_initializer='zeros',
                   weight_regularizer=th.regularizer, strength=th.reg_strength))
     nn.add(Activation(activation))
     branch = nn.add_branch()
-    branch.add(Linear(output_dim=1, weight_initializer='zeros'))
+    branch.add(Linear(output_dim=1))
+    # branch.add(Linear(output_dim=1, weight_initializer='zeros'))
   # Build
   model.default_build(th.learning_rate)
 

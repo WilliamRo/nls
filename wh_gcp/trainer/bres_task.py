@@ -44,7 +44,7 @@ def main(_):
 
   th.mark = 'bres-{}x({}x{})-0'.format(
     th.num_blocks, th.memory_depth, th.multiplier)
-  th.epoch = 5
+  th.epoch = 5000
   th.batch_size = 64
   th.learning_rate = 0.0001
   th.reg_strength = 0.000
