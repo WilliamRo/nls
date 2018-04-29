@@ -24,6 +24,7 @@ class NlsHub(SmartTrainerHub):
   num_blocks = Flag.integer(1, '...', is_key=None)
   hidden_dim = Flag.integer(80, '...')
   multiplier = Flag.integer(8, '...', is_key=True)
+  start_at = Flag.integer(0, '...', is_key=None)
 
 NlsHub.register()
 
