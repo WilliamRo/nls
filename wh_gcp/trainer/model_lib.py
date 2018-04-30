@@ -119,6 +119,7 @@ def bres_net_res0(th, activation='relu'):
   model = NeuralNet(th.memory_depth, mark=th.mark, nn_class=BResNet)
   nn = model.nn
   assert isinstance(nn, BResNet)
+  nn.strict_residual = False
 
   # Add layers
   nn.add(Input([th.memory_depth]))
@@ -146,7 +147,6 @@ def bres_net_res0(th, activation='relu'):
 
 if __name__ == '__main__':
   th = NlsHub()
-  model = bres_net00(th)
 
 
 
