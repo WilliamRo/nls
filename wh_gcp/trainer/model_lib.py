@@ -67,9 +67,10 @@ def res_00(th, activation='relu'):
 
 # region : BResNet
 
-def bres_net00(th, activation='relu'):
+def bres_net_dep0(th, activation='relu'):
   assert isinstance(th, NlsHub)
   # Initiate a neural net model
+  th.mark = '{}-{}'.format(th.mark, 'dep')
   model = NeuralNet(th.memory_depth, mark=th.mark, nn_class=BResNet)
   nn = model.nn
   assert isinstance(nn, BResNet)
@@ -77,7 +78,7 @@ def bres_net00(th, activation='relu'):
   # Add layers
   nn.add(Input([th.memory_depth]))
   for _ in range(th.num_blocks):
-    nn.add(Linear(output_dim=th.hidden_dim, #weight_initializer='zeros',
+    nn.add(Linear(output_dim=th.hidden_dim,
                   weight_regularizer=th.regularizer, strength=th.reg_strength))
     nn.add(Activation(activation))
     branch = nn.add_branch()
@@ -88,9 +89,10 @@ def bres_net00(th, activation='relu'):
   # Return model
   return model
 
-def bres_net01(th, activation='relu'):
+def bres_net_wid0(th, activation='relu'):
   assert isinstance(th, NlsHub)
   # Initiate a neural net model
+  th.mark = '{}-{}'.format(th.mark, 'wid')
   model = NeuralNet(th.memory_depth, mark=th.mark, nn_class=BResNet)
   nn = model.nn
   assert isinstance(nn, BResNet)
@@ -108,6 +110,35 @@ def bres_net01(th, activation='relu'):
   model.default_build(th.learning_rate)
 
   # Return model
+  return model
+
+def bres_net_res0(th, activation='relu'):
+  assert isinstance(th, NlsHub)
+  # Initiate a neural net model
+  th.mark = '{}-{}'.format(th.mark, 'res')
+  model = NeuralNet(th.memory_depth, mark=th.mark, nn_class=BResNet)
+  nn = model.nn
+  assert isinstance(nn, BResNet)
+
+  # Add layers
+  nn.add(Input([th.memory_depth]))
+  nn.add(Linear(output_dim=th.hidden_dim))
+  nn.add(Activation(activation))
+  branch = nn.add_branch()
+  branch.add(Linear(output_dim=1))
+  def add_res_block():
+    net = nn.add(ResidualNet())
+    net.add(Linear(output_dim=th.hidden_dim))
+    net.add(Activation(activation))
+    net.add_shortcut()
+    branch = nn.add_branch()
+    branch.add(Linear(output_dim=1))
+  for _ in range(th.num_blocks - 1): add_res_block()
+  nn.add(Linear(output_dim=1))
+
+  # Build
+  model.default_build(th.learning_rate)
+
   return model
 
 # endregion : BResNet

@@ -35,6 +35,7 @@ except:
 def main(_):
   console.start('mlp task')
 
+  description = '0'
   # Configurations
   th = NlsHub(as_global=True)
   th.memory_depth = 80
@@ -42,8 +43,8 @@ def main(_):
   th.multiplier = 8
   th.hidden_dim = th.memory_depth * th.multiplier
 
-  th.mark = 'mlp-{}x({}x{})-0'.format(
-    th.num_blocks, th.memory_depth, th.multiplier)
+  th.mark = 'mlp-{}x({}x{})-{}'.format(
+    th.num_blocks, th.memory_depth, th.multiplier, description)
   th.epoch = 50000
   th.batch_size = 64
   th.learning_rate = 0.0001

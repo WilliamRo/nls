@@ -35,6 +35,7 @@ except:
 def main(_):
   console.start('ResNet task')
 
+  description = '0'
   # Configurations
   th = NlsHub(as_global=True)
   th.memory_depth = 80
@@ -42,8 +43,8 @@ def main(_):
   th.multiplier = 8
   th.hidden_dim = th.memory_depth * th.multiplier
 
-  th.mark = 'res-{}x({}x{})-0'.format(
-    th.num_blocks, th.memory_depth, th.multiplier)
+  th.mark = 'res-{}x({}x{})-{}'.format(
+    th.num_blocks, th.memory_depth, th.multiplier, description)
   th.epoch = 50000
   th.batch_size = 128
   th.learning_rate = 0.0001
