@@ -8,6 +8,7 @@ import tensorflow as tf
 from tframe import console
 from tframe import Predictor
 from tframe import TFData
+from tframe import InputTypes
 from tframe.models.sl.vn import VolterraNet
 from tframe.models.sl.bamboo import Bamboo
 from tframe.trainers import SmartTrainerHub
@@ -25,6 +26,7 @@ class NlsHub(SmartTrainerHub):
   hidden_dim = Flag.integer(80, '...')
   multiplier = Flag.integer(8, '...', is_key=True)
   start_at = Flag.integer(0, '...', is_key=None)
+  branch_index = Flag.integer(0, '..')
 
 NlsHub.register()
 
@@ -65,6 +67,8 @@ class NeuralNet(Model):
       raise AssertionError('!! Model has not been built yet')
     mlp_input = self._gen_mlp_input(input_)
     tfinput = TFData(mlp_input)
+    if self.nn.input_type is InputTypes.RNN_BATCH:
+      tfinput = tfinput.as_rnn_data
     output = self.nn.predict(tfinput, **kwargs).flatten()
 
     output = Signal(output)

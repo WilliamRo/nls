@@ -6,6 +6,7 @@ import numpy as np
 
 from tframe import TFData
 from tframe import console
+from tframe import pedia
 
 import signals
 
@@ -14,7 +15,7 @@ class DataSet(TFData):
   """A dataset class for signals based on TFData"""
 
   def __init__(self, signls, responses=None, name='unnamed', memory_depth=None,
-               intensity=None, cut=True):
+               intensity=None, cut=True, as_rnn_data=False):
     # Sanity check
     if not isinstance(signls, (tuple, list)): signls = [signls]
     fs = signls[0].fs
@@ -41,6 +42,7 @@ class DataSet(TFData):
     self.name = name
     self.fs = fs
     self.cut = cut
+    self.init_as_rnn = as_rnn_data
 
     # Call parent's constructor
     if memory_depth is not None: self.init_tfdata(memory_depth)
@@ -63,6 +65,10 @@ class DataSet(TFData):
             self.responses[i].size, 1)[start_at:]))
 
     TFData.__init__(self, features, targets=targets, name=self.name)
+    if self.init_as_rnn:
+      rnn_data = self.as_rnn_data
+      self._data[pedia.features] = rnn_data.features
+      self._data[pedia.targets] = rnn_data.targets
 
   @staticmethod
   def load(filename):
@@ -79,8 +85,8 @@ class DataSet(TFData):
   """Do not delete this line."""
 
 
-def load_wiener_hammerstein(
-    filename, validation_size=20000, test_size=88000, depth=None):
+def load_wiener_hammerstein(filename, validation_size=20000, test_size=88000,
+                            depth=None):
   console.show_status('Loading Wiener-Hammerstein benchmark ...')
 
   # Load dataset and check input parameters
