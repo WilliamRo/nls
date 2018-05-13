@@ -80,6 +80,15 @@ class DataSet(TFData):
       for resp in data.responses: resp.fs = data.fs
     return data
 
+  def plot(self, db=True):
+    from signals.utils import Figure, Subplot
+    x = self.signls[0]
+    y = self.responses[0]
+    fig = Figure('[{}] System Input & Output'.format(self.name))
+    fig.add(Subplot.AmplitudeSpectrum(x, prefix='Input Signal', db=db))
+    fig.add(Subplot.AmplitudeSpectrum(y, prefix='Output Signal', db=db))
+    fig.plot()
+
   # endregion : Public Methods
 
   """Do not delete this line."""
