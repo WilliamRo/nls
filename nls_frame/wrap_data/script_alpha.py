@@ -1,10 +1,18 @@
 import numpy as np
+from signals import Signal
 
 
 def import_data():
   """Import your data here"""
-  #
-  return None, None
+  # Import your data as np array
+  np_x = None
+  np_y = None
+  # Wrap your data up into a Signal
+  fs = 1000  # sampling frequency
+  x = Signal(np_x, fs=fs)
+  y = Signal(np_y, fs=fs)
+  # Return
+  return x, y
 
 
 def psudo_import_data():
@@ -17,6 +25,7 @@ def psudo_import_data():
   phases = [0, np.pi]
   x = multi_tone(freqs, fs, duration, vrms=vrms,
                  phases=phases, noise_power=1e-3)
+  assert isinstance(x, Signal)
   # Generate targets
   black_box = Volterra()
   black_box.set_kernel((0,), 1)
@@ -24,6 +33,7 @@ def psudo_import_data():
   black_box.set_kernel((1, 4), 0.1)
   black_box.set_kernel((2, 3), 0.1)
   y = black_box(x)
+  assert isinstance(y, Signal)
 
   return x, y
 
@@ -76,5 +86,5 @@ def step_3():
 
 
 if __name__ == '__main__':
-  step_2()
+  step_1()
 
