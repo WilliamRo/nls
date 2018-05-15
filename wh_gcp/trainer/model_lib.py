@@ -8,6 +8,7 @@ from tframe.models.sl.bresnet import BResNet
 
 from tframe.models import Recurrent
 from tframe.nets.rnn_cells import BasicRNNCell
+from tframe.nets.lstms import BasicLSTMCell
 
 from models.neural_net import NeuralNet
 from models.neural_net import NlsHub
@@ -15,7 +16,7 @@ from models.neural_net import NlsHub
 
 # region : MLP
 
-def mlp_00(th, activation='relu'):
+def mlp_00(th):
   assert isinstance(th, NlsHub)
   # Initiate a predictor
   model = NeuralNet(th.memory_depth, mark=th.mark, nn_class=Predictor)
@@ -27,7 +28,7 @@ def mlp_00(th, activation='relu'):
   for i in range(th.num_blocks):
     nn.add(Linear(output_dim=th.hidden_dim, weight_regularizer=th.regularizer,
                   strength=th.reg_strength))
-    nn.add(Activation(activation))
+    nn.add(Activation(th.actype1))
   nn.add(Linear(output_dim=1))
 
   # Build model
@@ -160,7 +161,7 @@ def rnn0(th):
   # Add layers
   nn.add(Input(sample_shape=[th.memory_depth]))
   for _ in range(th.num_blocks):
-    nn.add(BasicRNNCell(state_size=th.hidden_dim, inner_struct='concat'))
+    nn.add(BasicRNNCell(state_size=th.hidden_dim))
   nn.add(Linear(output_dim=1))
 
   # Build
@@ -169,6 +170,30 @@ def rnn0(th):
   return model
 
 # endregion: RNN
+
+# region : LSTM
+
+def lstm0(th):
+  assert isinstance(th, NlsHub)
+  # Initiate a neural net model
+  nn_class = lambda mark: Predictor(mark=mark, net_type=Recurrent)
+  model = NeuralNet(th.memory_depth, mark=th.mark, nn_class=nn_class)
+  nn = model.nn
+  assert isinstance(nn, Predictor)
+
+  # Add layers
+  nn.add(Input(sample_shape=[th.memory_depth]))
+  for _ in range(th.num_blocks):
+    nn.add(BasicLSTMCell(state_size=th.hidden_dim))
+  nn.add(Linear(output_dim=1))
+
+  # Build
+  model.default_build(th.learning_rate)
+
+  return model
+
+# endregion : LSTM
+
 
 
 if __name__ == '__main__':

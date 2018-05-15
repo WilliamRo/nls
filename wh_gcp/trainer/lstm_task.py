@@ -50,10 +50,10 @@ def main(_):
   th.gpu_memory_fraction = 0.4
 
   description = '0'
-  th.mark = 'rnn-{}x({}x{})-{}steps-{}'.format(
+  th.mark = 'lstm-{}x({}x{})-{}steps-{}'.format(
     th.num_blocks, th.memory_depth, th.multiplier, th.num_steps, description)
   # Get model
-  model = model_lib.rnn0(th)
+  model = model_lib.lstm0(th)
   # Load data
   train_set, val_set, test_set = load_wiener_hammerstein(
     th.data_dir, depth=th.memory_depth, validation_size=2000)
