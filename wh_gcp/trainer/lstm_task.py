@@ -23,6 +23,10 @@ def main(_):
   th.hidden_dim = th.memory_depth * th.multiplier
   th.num_steps = 32
 
+  # th.input_gate = False
+  # th.forget_gate = False
+  # th.output_gate = False
+
   th.epoch = 100000
   th.batch_size = 32
   th.learning_rate = 1e-4
@@ -47,10 +51,12 @@ def main(_):
   th.save_model = True
 
   th.allow_growth = False
-  th.gpu_memory_fraction = 0.4
+  th.gpu_memory_fraction = 0.15
 
   description = '0'
-  th.mark = 'lstm-{}x({}x{})-{}steps-{}'.format(
+  th.mark = 'lstm[{}]{}x({}x{})-{}steps-{}'.format(
+    ('i' if th.input_gate else '') + ('f' if th.forget_gate else '') +
+    ('o' if th.output_gate else '') + 'g',
     th.num_blocks, th.memory_depth, th.multiplier, th.num_steps, description)
   # Get model
   model = model_lib.lstm0(th)

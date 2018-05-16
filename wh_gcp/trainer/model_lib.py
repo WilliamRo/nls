@@ -184,7 +184,8 @@ def lstm0(th):
   # Add layers
   nn.add(Input(sample_shape=[th.memory_depth]))
   for _ in range(th.num_blocks):
-    nn.add(BasicLSTMCell(state_size=th.hidden_dim))
+    nn.add(BasicLSTMCell(state_size=th.hidden_dim, input_gate=th.input_gate,
+                         forget_gate=th.forget_gate, output_gate=th.output_gate))
   nn.add(Linear(output_dim=1))
 
   # Build
